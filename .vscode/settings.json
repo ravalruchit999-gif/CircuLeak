@@ -1,21 +1,25 @@
 {
-  "python.defaultInterpreterPath": "C:\\Program Files\\Python314\\python.exe",
-  "python.analysis.typeCheckingMode": "basic",
+  "python.defaultInterpreterPath": "C:\\Users\\Raval Ruchit\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+  "python.analysis.typeCheckingMode": "off",
   "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
+    "reportGeneralTypeIssues": "none",
     "reportArgumentType": "none",
     "reportAttributeAccessIssue": "none",
-    "reportCallIssue": "none",
-    "reportOptionalMemberAccess": "none",
-    "reportGeneralTypeIssues": "none"
+    "reportCallIssue": "none"
   },
   "python.analysis.extraPaths": [
-    "D:/CircuLeak/CircuLeak/backend",
-    "${workspaceFolder}",
-    "${workspaceFolder}/backend"
+    "${workspaceFolder}/backend",
+    "${workspaceFolder}/backend/app",
+    "C:\\Users\\Raval Ruchit\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages"
   ],
   "python.autoComplete.extraPaths": [
-    "D:/CircuLeak/CircuLeak/backend",
-    "${workspaceFolder}",
-    "${workspaceFolder}/backend"
-  ]
+    "${workspaceFolder}/backend",
+    "${workspaceFolder}/backend/app",
+    "C:\\Users\\Raval Ruchit\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages"
+  ],
+  "terminal.integrated.env.windows": {
+    "PYTHONPATH": "${workspaceFolder}/backend"
+  }
 }
