@@ -21,3 +21,15 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python & Backend
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.db
+*.sqlite3
+backend/uploads/*
+!backend/uploads/.gitkeep
+venv/
+.venv/
