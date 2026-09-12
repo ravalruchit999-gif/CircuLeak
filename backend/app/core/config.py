@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote_plus
 from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,8 +38,10 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context):
         if not self.DATABASE_URL:
-            # Dynamically assemble PostgreSQL URL from individual parameters
-            self.DATABASE_URL = f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            # Dynamically assemble PostgreSQL URL from individual parameters (with safe quoting for special characters)
+            safe_user = quote_plus(self.DB_USER)
+            safe_pw = quote_plus(self.DB_PASSWORD)
+            self.DATABASE_URL = f"postgresql://{safe_user}:{safe_pw}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
