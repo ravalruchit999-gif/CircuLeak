@@ -4,33 +4,42 @@ import { SectionCard } from '../ui/SectionCard';
 import { customTooltipStyle } from '../../utils/chartHelpers';
 
 export function EmissionByEquipment({ equipment = [] }) {
+  const chartData = equipment.map((entry) => ({
+    ...entry,
+    displayName: entry.equipment || entry.name,
+  }));
+
   return (
     <SectionCard
       title="Equipment Emission Ranking"
       subtitle="Ranked contribution across machinery with flagged equipment highlighted"
     >
       <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={equipment} layout="vertical" margin={{ top: 10, right: 30, left: 70, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={256}>
+          <BarChart data={chartData} layout="vertical" margin={{ top: 10, right: 30, left: 70, bottom: 0 }}>
             <XAxis type="number" unit=" kg" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis type="category" dataKey="equipment" tick={{ fill: '#cbd5e1', fontSize: 11 }} width={120} />
+            <YAxis type="category" dataKey="displayName" tick={{ fill: '#cbd5e1', fontSize: 11 }} width={120} />
             <Tooltip
               contentStyle={customTooltipStyle}
               formatter={(val) => [`${val.toLocaleString()} kgCO₂e`, 'Emissions']}
             />
             <Bar dataKey="emissions_kg" radius={[0, 4, 4, 0]}>
-              {equipment.map((entry) => (
-                <Cell
-                  key={entry.equipment}
-                  fill={
-                    entry.equipment === 'Compressor 03'
-                      ? '#ef4444' // Red for flagged leak
-                      : entry.equipment === 'Furnace Line 2'
-                      ? '#f59e0b' // Amber for heavy loss
-                      : '#3b82f6'
-                  }
-                />
-              ))}
+              {chartData.map((entry) => {
+                const isCritical = entry.displayName?.includes('Compressor 03');
+                const isAmber = entry.displayName?.includes('Furnace Line 2') || entry.displayName?.includes('Boiler');
+                return (
+                  <Cell
+                    key={entry.displayName}
+                    fill={
+                      isCritical
+                        ? '#ef4444' // Red for flagged leak
+                        : isAmber
+                        ? '#f59e0b' // Amber for heavy loss
+                        : '#3b82f6'
+                    }
+                  />
+                );
+              })}
             </Bar>
           </BarChart>
         </ResponsiveContainer>

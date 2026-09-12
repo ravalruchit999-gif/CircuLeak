@@ -46,9 +46,10 @@ export async function apiRequest(endpoint, options = {}) {
   const id = setTimeout(() => controller.abort(), timeout);
 
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  const isFormData = typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
   const headers = {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(fetchOptions.headers || {}),
   };
 
