@@ -47,7 +47,7 @@ export function ActionPlanner() {
           title="No Action Plan Available"
           description="Action plans and implementation sequences are derived dynamically once operational telemetry has been ingested and anomalies analyzed."
           actionText="Upload Facility Telemetry"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );

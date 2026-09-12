@@ -95,3 +95,13 @@ export function formatEnergy(kwh) {
   }
   return `${Math.round(kwh).toLocaleString()} kWh`;
 }
+
+/**
+ * Format general numbers with thousands separator
+ * @param {number} value
+ * @returns {string}
+ */
+export function formatNumber(value) {
+  if (value === null || value === undefined || isNaN(value)) return '0';
+  return Number(value).toLocaleString('en-US');
+}

@@ -49,7 +49,7 @@ export function Recommendations() {
           title="No Recommendations Generated"
           description="Circular engineering interventions and economic ROI models are dynamically matched after operational telemetry or anomalies are detected."
           actionText="Upload Operational Telemetry"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );
