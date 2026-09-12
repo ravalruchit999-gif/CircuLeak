@@ -18,12 +18,47 @@ import {
   FileText,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useFacilityContext } from '../../context/FacilityContext';
+import { UploadCloud } from 'lucide-react';
 
 export function DashboardOverview({ data }) {
+  const { facilityName, currentFacilityId } = useFacilityContext();
   if (!data) return null;
+
+  const isZeroRecords = !data.metrics?.total_emissions || data.metrics.total_emissions === 0;
 
   return (
     <div className="space-y-6">
+      {/* Onboarding Ingestion Banner for Empty / New Facilities */}
+      {isZeroRecords && (
+        <div className="p-5 rounded-lg bg-gradient-to-r from-emerald-950/60 via-[#111e1c] to-[#121620] border border-emerald-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0 mt-0.5">
+              <UploadCloud className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-white tracking-tight">
+                  Ready to Ingest Telemetry for {facilityName}
+                </h4>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">
+                  Awaiting Telemetry
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Your facility is active in PostgreSQL. Upload your operational telemetry CSV (energy consumption, fuel inputs, and production volumes) to dynamically trigger carbon footprint computation, detect carbon leaks, and calculate circularity indexes.
+              </p>
+            </div>
+          </div>
+
+          <Link to="/data-upload" className="shrink-0">
+            <Button variant="primary" size="md" icon={UploadCloud}>
+              Upload Telemetry CSV
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* 1. Executive Industrial Operational Health Bar */}
       <div className="p-4 rounded-lg bg-gradient-to-r from-[#141a24] via-[#121620] to-[#151a24] border border-[#232c3d] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -33,20 +68,26 @@ export function DashboardOverview({ data }) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-bold text-white tracking-tight">
-                Apex Metals & Casting Unit 4
+                {facilityName}
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                Continuous Melting • 45k Tonnes/yr
+                Facility ID: {currentFacilityId}
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold animate-pulse">
-                Active Leak Detected
-              </span>
+              {isZeroRecords ? (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                  0 Records Ingested
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold animate-pulse">
+                  Active Leak Detected
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-slate-400" /> Current Operating Shift: Night (22:00 — 06:00)
+                <Clock className="w-3 h-3 text-slate-400" /> Current Operating Shift: Active Telemetry
               </span>
-              <span>• Vadodara Industrial Estate</span>
+              <span>• Industrial Corridor Database</span>
             </p>
           </div>
         </div>

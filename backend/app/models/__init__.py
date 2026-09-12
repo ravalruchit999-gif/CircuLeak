@@ -5,6 +5,7 @@ from .leak import Leak
 from .recommendation import Recommendation
 from .simulation import Simulation
 from .benchmark import Benchmark
+from .user import User
 
 __all__ = [
     "Facility",
@@ -13,5 +14,6 @@ __all__ = [
     "Leak",
     "Recommendation",
     "Simulation",
-    "Benchmark"
+    "Benchmark",
+    "User"
 ]

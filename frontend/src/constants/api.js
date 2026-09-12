@@ -36,4 +36,16 @@ export const ENDPOINTS = {
   CIRCULARITY: (id) => `/circularity/${toApiFacilityId(id)}`,
   AUDIT_SUMMARY: '/audit/summary',
   REPORT_GENERATE: '/report/generate',
+
+  // Authentication & Session
+  AUTH_LOGIN: '/auth/login',
+  AUTH_REGISTER: '/auth/register',
+  AUTH_ME: '/auth/me',
+
+  // Admin Governance
+  ADMIN_STATS: '/admin/stats',
+  ADMIN_FACILITIES: '/admin/facilities',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_EMISSION_FACTORS: '/admin/emission-factors',
 };
+

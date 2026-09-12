@@ -47,9 +47,11 @@ export async function apiRequest(endpoint, options = {}) {
 
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
   const isFormData = typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('circuleak_token') : null;
   const headers = {
     Accept: 'application/json',
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(fetchOptions.headers || {}),
   };
 
