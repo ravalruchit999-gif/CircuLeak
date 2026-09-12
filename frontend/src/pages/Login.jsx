@@ -14,6 +14,7 @@ export function Login() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isExpired = new URLSearchParams(location.search).get('expired') === '1';
   const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
@@ -26,8 +27,9 @@ export function Login() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const loggedUser = await login(email, password);
+      const target = loggedUser?.role === 'admin' && from === '/dashboard' ? '/admin' : from;
+      navigate(target, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid credentials. Please check your email and password.');
     } finally {
@@ -41,8 +43,9 @@ export function Login() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await login(fillEmail, fillPass);
-      navigate(from, { replace: true });
+      const loggedUser = await login(fillEmail, fillPass);
+      const target = loggedUser?.role === 'admin' && from === '/dashboard' ? '/admin' : from;
+      navigate(target, { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed.');
     } finally {
@@ -92,6 +95,13 @@ export function Login() {
             <div className="p-3 rounded bg-red-950/50 border border-red-800/80 text-red-300 text-xs flex items-start gap-2">
               <span className="shrink-0 font-bold font-mono">!</span>
               <span>{error}</span>
+            </div>
+          )}
+
+          {isExpired && !error && (
+            <div className="p-3 rounded bg-amber-950/60 border border-amber-800/80 text-amber-300 text-xs flex items-start gap-2">
+              <span className="shrink-0 font-bold font-mono text-amber-400">i</span>
+              <span>Your session token has expired or was reset. Please sign in below to resume.</span>
             </div>
           )}
 

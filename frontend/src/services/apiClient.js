@@ -45,6 +45,16 @@ export async function apiRequest(endpoint, options = {}) {
       } catch {
         // use default
       }
+
+      // Automatically evict expired/invalid tokens from localStorage on 401
+      if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('circuleak_token');
+          localStorage.removeItem('circuleak_user');
+          window.dispatchEvent(new CustomEvent('circuleak:unauthorized'));
+        }
+      }
+
       const error = new Error(parsedMessage);
       error.status = response.status;
       throw error;

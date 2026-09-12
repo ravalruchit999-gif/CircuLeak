@@ -1,10 +1,13 @@
 import React from 'react';
-import { Menu, Building, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, Building, AlertCircle, CheckCircle2, Activity, ShieldAlert } from 'lucide-react';
 import { useFacilityContext } from '../../context/FacilityContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function Topbar({ onToggleSidebar }) {
   const { currentFacilityId, facilityName, facilityDetails, facilityMetrics, liveApiError } =
     useFacilityContext();
+  const { isAdmin } = useAuth();
 
   const totalEmissions = facilityMetrics?.total_emissions;
   const intensity = facilityMetrics?.emissions_intensity;
@@ -77,6 +80,26 @@ export function Topbar({ onToggleSidebar }) {
             <Activity className="w-3 h-3 text-emerald-400 animate-pulse" />
             <span>FastAPI Live</span>
           </div>
+        )}
+
+        {/* Admin Console Shortcut */}
+        {isAdmin ? (
+          <Link
+            to="/admin"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium border bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/80 transition-colors shadow-sm"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
+            <span>Admin Console</span>
+          </Link>
+        ) : (
+          <Link
+            to="/admin"
+            title="Access System Governance (Requires Admin Authentication)"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium border bg-slate-900 text-slate-400 border-slate-800 hover:text-purple-300 hover:border-purple-800/60 transition-colors"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Admin</span>
+          </Link>
         )}
       </div>
     </header>

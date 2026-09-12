@@ -40,15 +40,30 @@ export function AuthProvider({ children }) {
           if (res.data) {
             setUser(res.data);
             localStorage.setItem('circuleak_user', JSON.stringify(res.data));
+          } else {
+            saveSession(null, null);
           }
         } catch {
-          // Token expired or invalid
-          console.warn('Session expired or offline. Using local cached session.');
+          // Token expired or invalid: evict immediately
+          console.warn('Authentication token expired or rejected by server. Resetting session.');
+          saveSession(null, null);
         }
+      } else {
+        saveSession(null, null);
       }
       setLoading(false);
     };
     initAuth();
+
+    const handleUnauthorized = () => {
+      saveSession(null, null);
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login?expired=1';
+      }
+    };
+
+    window.addEventListener('circuleak:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('circuleak:unauthorized', handleUnauthorized);
   }, []);
 
   const login = async (email, password) => {

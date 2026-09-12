@@ -141,13 +141,14 @@ export function Sidebar({ isOpen, onClose }) {
             );
           })}
 
-          {/* Admin Governance Section for Admin Users */}
-          {isAdmin && (
-            <div>
-              <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-widest text-purple-400">
-                Governance & Controls
-              </div>
-              <div className="space-y-0.5">
+          {/* Admin Governance Section */}
+          <div>
+            <div className="px-3 mb-2 text-[10px] font-mono uppercase tracking-widest text-purple-400 flex items-center justify-between">
+              <span>Governance & Controls</span>
+              {!isAdmin && <span className="text-[9px] text-slate-500 font-mono">Role Restricted</span>}
+            </div>
+            <div className="space-y-0.5">
+              {isAdmin ? (
                 <NavLink
                   to="/admin"
                   onClick={onClose}
@@ -167,38 +168,82 @@ export function Sidebar({ isOpen, onClose }) {
                     ROOT
                   </span>
                 </NavLink>
-              </div>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={onClose}
+                  title="Sign in as System Admin (admin@circuleak.com) to access Governance Controls"
+                  className="flex items-center justify-between px-3 py-2 rounded text-xs font-medium text-slate-400 hover:text-purple-300 hover:bg-[#181422] transition-colors group border border-transparent hover:border-purple-800/40"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShieldAlert className="w-4 h-4 text-slate-500 group-hover:text-purple-400 shrink-0" />
+                    <span className="truncate">Admin Console</span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-purple-400 border border-purple-900/60 group-hover:bg-purple-950">
+                    Admin Login
+                  </span>
+                </Link>
+              )}
             </div>
-          )}
+          </div>
         </nav>
 
         {/* User Profile & Footer */}
         <div className="p-3 border-t border-[#1e2533] bg-[#0b0e14] space-y-2.5">
           {user && (
-            <div className="p-2 rounded bg-[#131722] border border-[#1f2738] flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                  {getInitials(user.full_name)}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-semibold text-slate-200 truncate leading-tight">
-                    {user.full_name}
+            <div className="p-2.5 rounded bg-[#131722] border border-[#1f2738] space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                    {getInitials(user.full_name)}
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1.5 truncate">
-                    <span className={user.role === 'admin' ? 'text-purple-400' : 'text-emerald-400'}>
-                      {user.role === 'admin' ? 'System Admin' : 'Facility Mgr'}
-                    </span>
-                    {user.facility_id && <span>• F#{user.facility_id}</span>}
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-200 truncate leading-tight">
+                      {user.full_name}
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1.5 truncate">
+                      <span className={user.role === 'admin' ? 'text-purple-400 font-semibold' : 'text-emerald-400'}>
+                        {user.role === 'admin' ? 'System Admin' : 'Facility Mgr'}
+                      </span>
+                      {user.facility_id && <span>• F#{user.facility_id}</span>}
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={logout}
+                  title="Log Out Session"
+                  className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={logout}
-                title="Log Out Session"
-                className="p-1.5 rounded text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition-colors shrink-0"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+
+              <div className="pt-1.5 border-t border-[#1a2130] flex items-center justify-between text-[10px] font-mono">
+                {user.role === 'admin' ? (
+                  <Link
+                    to="/admin"
+                    onClick={onClose}
+                    className="text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1"
+                  >
+                    <span>Admin Console Active</span>
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
+                  >
+                    <span>Switch to Admin Account &rarr;</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="text-slate-500 hover:text-red-400 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           )}
 
