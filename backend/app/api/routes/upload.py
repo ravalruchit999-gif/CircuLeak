@@ -1,6 +1,8 @@
+import io
 import json
 from typing import Optional
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status, Query, Response
+import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -16,6 +18,42 @@ from app.schemas.common import APIResponse
 from app.services.csv_service import CSVService
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
+
+
+@router.get("/template")
+async def download_telemetry_template(
+    format: str = Query("csv", description="Template format: 'csv' or 'xlsx'")
+):
+    """
+    Download a sample industrial telemetry dataset template with the exact
+    canonical columns required by the ingestion pipeline.
+    """
+    sample_records = [
+        {"date": "2026-03-01", "hour": 0, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 52.4, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 18.5, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 1, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 51.8, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 18.0, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 2, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 53.1, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 17.8, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 3, "equipment": "Induction Melting Furnace", "process": "Melting & Casting", "electricity_kwh": 420.5, "fuel_type": "natural_gas", "fuel_quantity": 35.0, "production_volume": 24.0, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 4, "equipment": "Induction Melting Furnace", "process": "Melting & Casting", "electricity_kwh": 435.0, "fuel_type": "natural_gas", "fuel_quantity": 36.2, "production_volume": 25.0, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 5, "equipment": "Annealing Heat-Treat Oven", "process": "Thermal Processing", "electricity_kwh": 180.2, "fuel_type": "natural_gas", "fuel_quantity": 18.5, "production_volume": 15.0, "operating_hours": 1.0},
+        {"date": "2026-03-01", "hour": 6, "equipment": "Auxiliary Cooling Pumps", "process": "Cooling Water Loop", "electricity_kwh": 38.4, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 20.0, "operating_hours": 1.0},
+    ]
+    df = pd.DataFrame(sample_records)
+
+    if format.lower() == "xlsx":
+        buf = io.BytesIO()
+        df.to_excel(buf, index=False, engine="openpyxl")
+        return Response(
+            content=buf.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": 'attachment; filename="circuleak_telemetry_template.xlsx"'}
+        )
+    else:
+        csv_str = df.to_csv(index=False)
+        return Response(
+            content=csv_str.encode("utf-8"),
+            media_type="text/csv",
+            headers={"Content-Disposition": 'attachment; filename="circuleak_telemetry_template.csv"'}
+        )
 
 
 @router.post("/inspect", response_model=APIResponse[InspectResponse])

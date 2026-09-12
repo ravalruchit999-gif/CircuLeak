@@ -110,12 +110,15 @@ def sanitize_filename(filename: str) -> str:
     """Sanitize uploaded filenames to prevent path traversal attacks."""
     clean_name = os.path.basename(filename)
     clean_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', clean_name)
+    # If filename has no extension at all, default to .csv
+    if "." not in clean_name:
+        clean_name = f"{clean_name}.csv"
     return clean_name
 
 
 def validate_csv_extension(filename: str) -> bool:
-    """Validate that uploaded file is a supported spreadsheet (.csv, .xlsx, .xls)."""
-    return filename.lower().endswith((".csv", ".xlsx", ".xls"))
+    """Validate that uploaded file is a supported spreadsheet (.csv, .xlsx, .xls, .xlsm)."""
+    return filename.lower().endswith((".csv", ".xlsx", ".xls", ".xlsm", ".tsv"))
 
 
 def validate_dataset_extension(filename: str) -> bool:

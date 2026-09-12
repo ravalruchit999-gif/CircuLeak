@@ -53,19 +53,39 @@ export function IngestionWizard() {
   // STEP 1: Handle file drop / browse and inspect headers
   const handleFile = async (file) => {
     if (!file) return;
-    const validExts = ['.csv', '.xlsx', '.xls'];
-    const hasValidExt = validExts.some((ext) => file.name.toLowerCase().endsWith(ext));
+    const validExts = ['.csv', '.xlsx', '.xls', '.xlsm', '.tsv'];
+    const fileName = (file.name || '').toLowerCase();
+    const hasValidExt = validExts.some((ext) => fileName.endsWith(ext));
+
+    const isSpreadsheetMime = file.type && (
+      file.type.includes('csv') ||
+      file.type.includes('spreadsheet') ||
+      file.type.includes('excel') ||
+      file.type.includes('text/plain') ||
+      file.type === 'application/octet-stream'
+    );
+
+    let targetFile = file;
     if (!hasValidExt) {
-      setErrorMessage('Invalid file format. Please upload a .csv, .xlsx, or .xls industrial spreadsheet.');
-      return;
+      // If extension was stripped by OS/browser or mime is spreadsheet, normalize filename
+      if (isSpreadsheetMime || !fileName.includes('.') || fileName.includes('telemetry') || fileName.includes('template')) {
+        const isXlsx = file.type?.includes('spreadsheet') || file.type?.includes('openxml');
+        const ext = isXlsx ? '.xlsx' : '.csv';
+        targetFile = new File([file], `${file.name || 'industrial_telemetry'}${ext}`, {
+          type: file.type || (isXlsx ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv'),
+        });
+      } else {
+        setErrorMessage('Invalid file format. Please upload a .csv, .xlsx, or .xls industrial spreadsheet.');
+        return;
+      }
     }
 
-    setSelectedFile(file);
+    setSelectedFile(targetFile);
     setErrorMessage(null);
     setIsInspecting(true);
 
     try {
-      const inspectRes = await inspectIndustrialDataset(file);
+      const inspectRes = await inspectIndustrialDataset(targetFile);
       const data = inspectRes.data;
       setInspectData(data);
       setCustomMapping(data.suggested_mapping || {});
@@ -211,7 +231,7 @@ export function IngestionWizard() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls,.xlsm,.tsv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             />

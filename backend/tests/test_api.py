@@ -11,6 +11,23 @@ def test_health_check(client):
     assert data["service"] == "CircuLeak Backend"
 
 
+def test_template_download_csv_and_xlsx(client):
+    """Test downloading industrial telemetry template in both CSV and XLSX formats."""
+    # CSV format
+    csv_resp = client.get("/api/upload/template?format=csv")
+    assert csv_resp.status_code == 200
+    assert "text/csv" in csv_resp.headers.get("content-type", "")
+    assert "circuleak_telemetry_template.csv" in csv_resp.headers.get("content-disposition", "")
+    assert b"equipment" in csv_resp.content
+
+    # XLSX format
+    xlsx_resp = client.get("/api/upload/template?format=xlsx")
+    assert xlsx_resp.status_code == 200
+    assert "openxmlformats-officedocument" in xlsx_resp.headers.get("content-type", "")
+    assert "circuleak_telemetry_template.xlsx" in xlsx_resp.headers.get("content-disposition", "")
+    assert len(xlsx_resp.content) > 1000
+
+
 def test_full_pipeline_flow(client):
     """
     Test full end-to-end pipeline:
