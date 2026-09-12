@@ -9,7 +9,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { SectionCard } from '../ui/SectionCard';
-import { Activity, AlertTriangle, Clock, Zap, Info } from 'lucide-react';
+import { Activity, AlertTriangle, Info } from 'lucide-react';
 import { useFacilityContext } from '../../context/FacilityContext';
 import { getEmissionsTimeline } from '../../services/emissionsApi';
 import { getLeakAnomalies } from '../../services/leaksApi';
@@ -68,7 +68,7 @@ export function ShiftTelemetryChart() {
             setTopLeak(null);
           }
         }
-      } catch (err) {
+      } catch {
         if (isMounted) setTimelineData([]);
       } finally {
         if (isMounted) setLoading(false);

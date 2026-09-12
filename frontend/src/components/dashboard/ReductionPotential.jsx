@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Zap, CheckCircle2, ArrowRight, ShieldCheck, TrendingDown, Cpu } from 'lucide-react';
+import { Sparkles, Zap, CheckCircle2, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
 import { SectionCard } from '../ui/SectionCard';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';

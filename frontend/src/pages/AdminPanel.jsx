@@ -17,7 +17,6 @@ import {
 import { useFacilityContext } from '../context/FacilityContext';
 import { useNavigate } from 'react-router-dom';
 import {
-  ShieldAlert,
   Building2,
   Users,
   Database,
@@ -25,7 +24,6 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  Sliders,
   Award,
   RefreshCw,
   FileSpreadsheet,

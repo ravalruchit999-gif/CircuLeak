@@ -189,11 +189,18 @@ export function Register() {
           </form>
         </div>
 
-        <div className="text-center text-xs text-slate-400">
-          Already have an existing facility workspace?{' '}
-          <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2">
-            Sign in here
-          </Link>
+        <div className="space-y-2 text-center text-xs text-slate-400">
+          <div>
+            Already have an existing facility workspace?{' '}
+            <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2">
+              Sign in here
+            </Link>
+          </div>
+          <div>
+            <Link to="/" className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-[11px] font-mono">
+              <span>&larr; Return to CircuLeak Home</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

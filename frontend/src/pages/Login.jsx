@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, Lock, Mail, ArrowRight, Activity, Zap, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export function Login() {
   const navigate = useNavigate();
@@ -32,22 +32,6 @@ export function Login() {
       navigate(target, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid credentials. Please check your email and password.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleQuickFill = async (fillEmail, fillPass) => {
-    setEmail(fillEmail);
-    setPassword(fillPass);
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const loggedUser = await login(fillEmail, fillPass);
-      const target = loggedUser?.role === 'admin' && from === '/dashboard' ? '/admin' : from;
-      navigate(target, { replace: true });
-    } catch (err) {
-      setError(err.message || 'Login failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -152,47 +136,32 @@ export function Login() {
             </Button>
           </form>
 
-          {/* Quick-Fill Demonstration Buttons */}
-          <div className="pt-3 border-t border-[#1e2533] space-y-2">
-            <div className="text-[10px] font-mono uppercase text-slate-400 text-center tracking-wider">
-              Quick One-Click Demo Access
+          {/* Security & Access Notice */}
+          <div className="pt-3 border-t border-[#1e2533] space-y-2 text-center text-xs text-slate-400">
+            <div className="flex items-center justify-center gap-1.5 text-slate-500 text-[11px] font-mono">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Bcrypt 12-round salted encryption • RBAC isolated</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('manager@apexmetals.com', 'ManagerPassword123!')}
-                className="p-2 rounded bg-[#171e2b] border border-[#253043] hover:border-emerald-500 text-slate-300 text-left transition-all group"
-              >
-                <span className="block font-semibold text-white group-hover:text-emerald-400 text-xs">
-                  Facility Manager
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono block truncate">
-                  Operational Facility
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin@circuleak.com', 'AdminPassword123!')}
-                className="p-2 rounded bg-[#171e2b] border border-[#253043] hover:border-blue-500 text-slate-300 text-left transition-all group"
-              >
-                <span className="block font-semibold text-white group-hover:text-blue-400 text-xs">
-                  Chief Auditor (Admin)
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono block truncate">
-                  Full Governance Access
-                </span>
-              </button>
-            </div>
+            <p className="text-[11px] text-slate-500">
+              Platform administration is strictly restricted to designated audit credentials.
+            </p>
           </div>
         </div>
 
-        {/* Register Link */}
-        <div className="text-center text-xs text-slate-400">
-          Onboarding a new manufacturing facility?{' '}
-          <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2">
-            Create facility workspace
-          </Link>
+        {/* Links */}
+        <div className="space-y-2 text-center text-xs text-slate-400">
+          <div>
+            Onboarding a new manufacturing facility?{' '}
+            <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium underline underline-offset-2">
+              Create facility workspace
+            </Link>
+          </div>
+          <div>
+            <Link to="/" className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-[11px] font-mono">
+              <ArrowLeft className="w-3 h-3" />
+              Return to CircuLeak Home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

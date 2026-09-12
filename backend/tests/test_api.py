@@ -28,6 +28,39 @@ def test_template_download_csv_and_xlsx(client):
     assert len(xlsx_resp.content) > 1000
 
 
+def test_single_admin_and_role_security(client):
+    """Test that regular users cannot register as admin or access admin endpoints."""
+    # 1. Attempting to register as admin@circuleak.com is blocked
+    admin_reg = client.post("/api/auth/register", json={
+        "full_name": "Fake Admin",
+        "email": "admin@circuleak.com",
+        "password": "Password123!",
+        "company_name": "Fake Inc.",
+        "role": "admin"
+    })
+    assert admin_reg.status_code == 403
+
+    # 2. Attempting to register with role='admin' on another email is demoted to facility_manager
+    user_reg = client.post("/api/auth/register", json={
+        "full_name": "Test User",
+        "email": "test_user_strict@factory.com",
+        "password": "UserPassword123!",
+        "company_name": "Test Factory",
+        "role": "admin"
+    })
+    assert user_reg.status_code == 200
+    user_data = user_reg.json()["data"]["user"]
+    assert user_data["role"] == "facility_manager"
+
+    # 3. Regular user token cannot access /api/admin/stats
+    user_token = user_reg.json()["data"]["access_token"]
+    forbidden_resp = client.get(
+        "/api/admin/stats",
+        headers={"Authorization": f"Bearer {user_token}"}
+    )
+    assert forbidden_resp.status_code == 403
+
+
 def test_full_pipeline_flow(client):
     """
     Test full end-to-end pipeline:

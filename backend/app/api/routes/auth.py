@@ -14,8 +14,15 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", response_model=APIResponse[TokenResponse])
 def register_user(request: UserCreate, db: Session = Depends(get_db)):
     """Register a new user, create a facility container for them, and return a JWT access token."""
+    clean_email = request.email.lower().strip()
+    if clean_email == "admin@circuleak.com":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The admin@circuleak.com address is reserved for the primary system administrator."
+        )
+
     # Check if email already registered
-    existing = db.query(User).filter(User.email == request.email.lower().strip()).first()
+    existing = db.query(User).filter(User.email == clean_email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -40,13 +47,13 @@ def register_user(request: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(facility)
 
-    # Create User
+    # Create User - strictly assign facility_manager (public registration cannot create admin)
     new_user = User(
-        email=request.email.lower().strip(),
+        email=clean_email,
         hashed_password=hash_password(request.password),
         full_name=request.full_name.strip(),
         company_name=request.company_name,
-        role=request.role or "facility_manager",
+        role="facility_manager",
         facility_id=facility.id
     )
     db.add(new_user)

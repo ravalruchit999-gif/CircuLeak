@@ -17,7 +17,6 @@ import {
   Layers,
   ShieldAlert,
   LogOut,
-  User,
 } from 'lucide-react';
 import { NAV_ITEMS } from '../../constants/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -69,9 +68,8 @@ export function Sidebar({ isOpen, onClose }) {
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-[#0e1117] border-r border-[#1e2533] flex flex-col transition-transform duration-200 lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } no-print`}
+        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-[#0e1117] border-r border-[#1e2533] flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } no-print`}
       >
         {/* Brand Header */}
         <div className="h-14 px-5 border-b border-[#1e2533] flex items-center justify-between">
@@ -117,10 +115,9 @@ export function Sidebar({ isOpen, onClose }) {
                         to={item.path}
                         onClick={onClose}
                         className={({ isActive }) =>
-                          `flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${
-                            isActive
-                              ? 'bg-[#18202d] text-emerald-300 border border-emerald-500/30'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-[#141822]'
+                          `flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${isActive
+                            ? 'bg-[#18202d] text-emerald-300 border border-emerald-500/30'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-[#141822]'
                           }`
                         }
                       >
@@ -153,10 +150,9 @@ export function Sidebar({ isOpen, onClose }) {
                   to="/admin"
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${
-                      isActive
-                        ? 'bg-[#22182d] text-purple-300 border border-purple-500/40'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-[#181422]'
+                    `flex items-center justify-between px-3 py-2 rounded text-xs font-medium transition-colors ${isActive
+                      ? 'bg-[#22182d] text-purple-300 border border-purple-500/40'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#181422]'
                     }`
                   }
                 >

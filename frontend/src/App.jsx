@@ -6,7 +6,8 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
-// Auth & Admin Pages
+// Auth, Admin & Landing Pages
+import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AdminPanel } from './pages/AdminPanel';
@@ -33,47 +34,46 @@ export function App() {
         <FacilityProvider>
           <BrowserRouter>
             <Routes>
-            {/* Public Authentication Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+              {/* Public Discovery & Authentication Routes */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Protected Application Workspace */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="facility" element={<Facility />} />
-              <Route path="data-upload" element={<DataUpload />} />
-              <Route path="emissions" element={<Emissions />} />
-              <Route path="leaks" element={<Leaks />} />
-              <Route path="leaks/:id" element={<LeakDetails />} />
-              <Route path="recommendations" element={<Recommendations />} />
-              <Route path="action-planner" element={<ActionPlanner />} />
-              <Route path="simulation" element={<Simulation />} />
-              <Route path="trajectory" element={<Trajectory />} />
-              <Route path="benchmark" element={<Benchmark />} />
-              <Route path="circularity" element={<Circularity />} />
-              <Route path="audit-report" element={<AuditReport />} />
+              {/* Protected Application Workspace */}
               <Route
-                path="admin"
                 element={
-                  <ProtectedRoute adminOnly>
-                    <AdminPanel />
+                  <ProtectedRoute>
+                    <AppLayout />
                   </ProtectedRoute>
                 }
-              />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </FacilityProvider>
-    </AuthProvider>
+              >
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/facility" element={<Facility />} />
+                <Route path="/data-upload" element={<DataUpload />} />
+                <Route path="/emissions" element={<Emissions />} />
+                <Route path="/leaks" element={<Leaks />} />
+                <Route path="/leaks/:id" element={<LeakDetails />} />
+                <Route path="/recommendations" element={<Recommendations />} />
+                <Route path="/action-planner" element={<ActionPlanner />} />
+                <Route path="/simulation" element={<Simulation />} />
+                <Route path="/trajectory" element={<Trajectory />} />
+                <Route path="/benchmark" element={<Benchmark />} />
+                <Route path="/circularity" element={<Circularity />} />
+                <Route path="/audit-report" element={<AuditReport />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute adminOnly>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </FacilityProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
