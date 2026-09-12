@@ -1,0 +1,9 @@
+[tool.pyright]
+include = ["app"]
+extraPaths = ["."]
+typeCheckingMode = "basic"
+reportArgumentType = "none"
+reportAttributeAccessIssue = "none"
+reportCallIssue = "none"
+reportOptionalMemberAccess = "none"
+reportAssignmentType = "none"
