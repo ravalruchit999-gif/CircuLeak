@@ -1,5 +1,5 @@
 {
-  "python.defaultInterpreterPath": "C:\\Users\\Raval Ruchit\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+  "python.defaultInterpreterPath": "C:\\Users\\Raval Ruchit\\AppData\\Local\\Python\\bin\\python.exe",
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.extraPaths": [
     "${workspaceFolder}",
