@@ -47,10 +47,14 @@ export async function apiRequest(endpoint, options = {}) {
 
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
   const headers = {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
     ...(fetchOptions.headers || {}),
   };
+
+  // Only set Content-Type to application/json when not sending FormData (multipart boundary)
+  if (!(fetchOptions.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   try {
     const response = await fetch(url, {
@@ -65,7 +69,10 @@ export async function apiRequest(endpoint, options = {}) {
       let parsedMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const json = JSON.parse(errorBody);
-        parsedMessage = json.detail || json.message || parsedMessage;
+        parsedMessage = json.error?.message || json.detail || json.message || parsedMessage;
+        if (json.error?.details && Array.isArray(json.error.details)) {
+          parsedMessage += `: ${json.error.details.join(', ')}`;
+        }
       } catch {
         // use default
       }

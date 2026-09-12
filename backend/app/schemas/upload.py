@@ -1,10 +1,10 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel
 
 
 class UploadSummaryResponse(BaseModel):
     status: str
-    facility_id: int
+    facility_id: Union[int, str]
     rows_processed: int
     rows_valid: int
     rows_rejected: int

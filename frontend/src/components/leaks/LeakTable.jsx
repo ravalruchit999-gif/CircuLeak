@@ -11,13 +11,13 @@ export function LeakTable({ leaks = [] }) {
 
   const filteredLeaks = leaks.filter((leak) => {
     const matchesSearch =
-      leak.equipment.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      leak.process.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      leak.id.toLowerCase().includes(searchTerm.toLowerCase());
+      String(leak.equipment || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(leak.process || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(leak.id || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     if (selectedFilter === 'ALL') return matchesSearch;
-    if (selectedFilter === 'CRITICAL') return matchesSearch && leak.risk_score >= 80;
-    if (selectedFilter === 'HIGH') return matchesSearch && leak.risk_score >= 60 && leak.risk_score < 80;
+    if (selectedFilter === 'CRITICAL') return matchesSearch && Number(leak.risk_score || 0) >= 80;
+    if (selectedFilter === 'HIGH') return matchesSearch && Number(leak.risk_score || 0) >= 60 && Number(leak.risk_score || 0) < 80;
     return matchesSearch;
   });
 

@@ -3,26 +3,28 @@ from sqlalchemy.orm import Session
 try:
     from app.services.emission_service import EmissionService
     from app.services.leak_service import LeakService
+    from app.utils.facility_resolver import resolve_facility_id
 except (ImportError, ModuleNotFoundError):
     from .emission_service import EmissionService
     from .leak_service import LeakService
+    from ..utils.facility_resolver import resolve_facility_id
 
 
 class CircularityService:
     @staticmethod
-    def calculate_circularity_score(db: Session, facility_id: int) -> Dict[str, Any]:
+    def calculate_circularity_score(db: Session, facility_id: Any) -> Dict[str, Any]:
         """
         Calculate multi-dimensional 0-100 Circularity Score.
         Evaluates material reuse, waste recovery, renewable integration,
         process thermal efficiency, and carbon utilization.
         """
-        summary = EmissionService.calculate_summary(db, facility_id)
-        hotspots = LeakService.get_structural_hotspots(db, facility_id).get("hotspots", [])
-        anomalies = LeakService.get_anomalies(db, facility_id).get("anomalies", [])
+        fac_id = resolve_facility_id(facility_id, db)
+        summary = EmissionService.calculate_summary(db, fac_id)
+        hotspots = LeakService.get_structural_hotspots(db, fac_id).get("hotspots", [])
+        anomalies = LeakService.get_anomalies(db, fac_id).get("anomalies", [])
 
         # 1. Renewable energy score (based on fuel mix)
         by_source = {s["name"].lower(): s["percentage_of_total"] for s in summary.get("by_source", [])}
-        grid_share = by_source.get("grid electricity", 0.0)
         coal_share = by_source.get("coal", 0.0)
         diesel_share = by_source.get("diesel", 0.0)
         biomass_share = by_source.get("biomass", 0.0)
@@ -61,14 +63,67 @@ class CircularityService:
 
         if overall_score >= 80:
             grade = "A (Circular Champion)"
+            tier = "Circular Industry Leader"
         elif overall_score >= 65:
             grade = "B (Transitioning)"
+            tier = "Transitioning Circular"
         elif overall_score >= 50:
             grade = "C (Significant Linear Leaks)"
+            tier = "Linear with Emerging Loops"
         else:
             grade = "D (High Fossil Dependency)"
+            tier = "High Fossil Dependency"
 
-        projected_score = min(92.0, round(overall_score + 22.5, 1))
+        projected_score = min(92.0, round(overall_score + 19.0, 1))
+        score_delta = round(projected_score - overall_score, 1)
+
+        pillars = [
+            {
+                "id": "material_reuse",
+                "name": "Material Reuse",
+                "current_score": round(material_reuse, 1),
+                "projected_score": min(100.0, round(material_reuse + 20, 1)),
+                "weight": 20,
+                "description": "Internal scrap metal re-melting ratio and runner/riser circulation efficiency.",
+                "key_leverage": "Scrap pre-heating and dross recovery optimization."
+            },
+            {
+                "id": "waste_recovery",
+                "name": "Waste Recovery",
+                "current_score": round(waste_recovery, 1),
+                "projected_score": min(100.0, round(waste_recovery + 16, 1)),
+                "weight": 20,
+                "description": "Slag recycling in construction aggregates and dust baghouse filtration capture.",
+                "key_leverage": "Flue-gas heat recovery into thermal loops."
+            },
+            {
+                "id": "renewable_energy",
+                "name": "Renewable Energy",
+                "current_score": round(renewable_score, 1),
+                "projected_score": min(100.0, round(renewable_score + 27, 1)),
+                "weight": 20,
+                "description": "On-site clean solar generation share vs fossil-intensive grid electricity.",
+                "key_leverage": "Commissioning 200 kWp rooftop solar PV PPA array."
+            },
+            {
+                "id": "process_efficiency",
+                "name": "Process Efficiency",
+                "current_score": round(process_efficiency, 1),
+                "projected_score": min(100.0, round(process_efficiency + 18, 1)),
+                "weight": 20,
+                "description": "Specific energy consumption per batch melted and compressed air pressure stability.",
+                "key_leverage": "Compressor unloader repair and VFD pump regulation."
+            },
+            {
+                "id": "carbon_utilization",
+                "name": "Carbon Utilization",
+                "current_score": round(carbon_utilization, 1),
+                "projected_score": min(100.0, round(carbon_utilization + 22, 1)),
+                "weight": 20,
+                "description": "Avoided direct emissions through closed-loop thermal and operational mitigation.",
+                "key_leverage": "Total avoidance of carbon leaks via heat recovery & sequencing."
+            }
+        ]
 
         key_insights = [
             f"Current facility circularity sits at {overall_score}/100 ({grade}).",
@@ -81,6 +136,10 @@ class CircularityService:
             "facility_id": facility_id,
             "overall_score": overall_score,
             "grade": grade,
+            "tier": tier,
+            "projected_score": projected_score,
+            "projected_score_after_interventions": projected_score,
+            "score_delta": score_delta,
             "dimensions": {
                 "material_reuse": round(material_reuse, 1),
                 "waste_recovery": round(waste_recovery, 1),
@@ -88,7 +147,7 @@ class CircularityService:
                 "process_efficiency": round(process_efficiency, 1),
                 "carbon_utilization": round(carbon_utilization, 1)
             },
-            "projected_score_after_interventions": projected_score,
+            "pillars": pillars,
             "dimension_benchmarks": {
                 "material_reuse": 65.0,
                 "waste_recovery": 70.0,

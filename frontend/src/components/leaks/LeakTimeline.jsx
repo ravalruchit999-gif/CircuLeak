@@ -35,7 +35,7 @@ export function LeakTimeline({ timeline = [] }) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1f2635" />
             <XAxis dataKey="time" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} unit=" kWh" domain={[30, 100]} />
+            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} unit=" kWh" domain={['auto', 'auto']} />
             <Tooltip
               contentStyle={customTooltipStyle}
               formatter={(val, name) => [`${val} kWh`, name]}

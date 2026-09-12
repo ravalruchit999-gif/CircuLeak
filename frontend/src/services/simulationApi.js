@@ -4,10 +4,14 @@ import { simulationMock } from '../data/simulationMock';
 import { round } from '../utils/numbers';
 
 export async function getSimulationScenarios(facilityId = 'FAC-8842') {
-  return apiRequest(ENDPOINTS.SIMULATION_SCENARIOS, {
+  const res = await apiRequest(`${ENDPOINTS.SIMULATION_SCENARIOS}?facility_id=${encodeURIComponent(facilityId)}`, {
     method: 'GET',
     mockData: simulationMock.scenarios,
   });
+  if (res && res.data && Array.isArray(res.data.scenarios)) {
+    return { ...res, data: res.data.scenarios };
+  }
+  return res;
 }
 
 export async function simulateWhatIf(interventionIds = [], facilityId = 'FAC-8842') {

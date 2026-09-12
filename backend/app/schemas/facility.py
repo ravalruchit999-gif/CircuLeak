@@ -20,7 +20,11 @@ class FacilityCreate(FacilityBase):
 
 class FacilityResponse(FacilityBase):
     id: int
+    facility_id: Optional[str] = None
+    facility_name: Optional[str] = None
+    production_volume_unit: Optional[str] = "metric tons / year"
     created_at: datetime
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+

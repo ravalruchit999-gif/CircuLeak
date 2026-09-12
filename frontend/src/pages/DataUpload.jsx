@@ -8,12 +8,12 @@ import { Button } from '../components/ui/Button';
 export function DataUpload() {
   const downloadSampleCsv = () => {
     const csvContent =
-      'timestamp,equipment_id,energy_source,consumption,production_status\n' +
-      '2026-02-10 00:00,COMPRESSOR-03,Electricity,61.2,inactive\n' +
-      '2026-02-10 01:00,COMPRESSOR-03,Electricity,60.8,inactive\n' +
-      '2026-02-10 02:00,COMPRESSOR-03,Electricity,62.1,inactive\n' +
-      '2026-02-10 06:00,FURNACE-02,Natural Gas,614.5,active\n' +
-      '2026-02-10 07:00,FURNACE-02,Natural Gas,612.0,active\n';
+      'date,hour,equipment,process,electricity_kwh,fuel_type,fuel_quantity,production_volume,operating_hours\n' +
+      '2026-03-01,0,Air Compressor Unit 1,Compressed Air,48.5,electricity,0.0,22.0,1.0\n' +
+      '2026-03-01,1,Air Compressor Unit 1,Compressed Air,52.1,electricity,0.0,20.0,1.0\n' +
+      '2026-03-01,2,Air Compressor Unit 1,Compressed Air,50.4,electricity,0.0,18.0,1.0\n' +
+      '2026-03-01,6,Melting Furnace 2,Induction Melting,120.0,natural gas,45.2,65.0,1.0\n' +
+      '2026-03-01,7,Melting Furnace 2,Induction Melting,135.2,natural gas,50.0,72.0,1.0\n';
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

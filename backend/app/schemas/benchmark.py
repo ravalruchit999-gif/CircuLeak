@@ -1,9 +1,9 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 from pydantic import BaseModel
 
 
 class BenchmarkResponse(BaseModel):
-    facility_id: int
+    facility_id: Union[int, str]
     sector: str
     facility_intensity: float
     benchmark_average: float
@@ -15,12 +15,15 @@ class BenchmarkResponse(BaseModel):
     unit: str
     source: str
     synthetic: bool
+    status_summary: Optional[str] = None
+    top_performers_average: Optional[float] = None
 
 
 class PeerClusterResponse(BaseModel):
-    facility_id: int
+    facility_id: Union[int, str]
     cluster_id: int
     cluster_name: str
+    cluster_description: Optional[str] = None
     similar_facility_count: int
     facility_intensity: float
     cluster_average: float

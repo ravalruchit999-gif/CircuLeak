@@ -17,8 +17,48 @@ logger = logging.getLogger("circuleak")
 try:
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables initialized successfully.")
+    
+    # Auto-seed initial facility & telemetry if empty for immediate live demo readiness
+    from app.core.database import SessionLocal
+    from app.models.facility import Facility
+    from app.services.csv_service import CSVService
+    from app.services.leak_service import LeakService
+    import os
+
+    _seed_db = SessionLocal()
+    try:
+        if _seed_db.query(Facility).first() is None:
+            logger.info("Database is empty. Seeding initial industrial facility & telemetry...")
+            demo_facility = Facility(
+                id=1,
+                business_name="Apex Metals & Casting Unit 4",
+                sector="metal_fabrication",
+                location="Vadodara Industrial Estate, Gujarat, India",
+                production_type="Alloy & Steel Fabrication",
+                production_volume=45000.0,
+                employees=280,
+                operating_hours=24.0,
+                energy_sources=["grid_electricity", "natural_gas", "diesel"]
+            )
+            _seed_db.add(demo_facility)
+            _seed_db.commit()
+            _seed_db.refresh(demo_facility)
+
+            csv_path = os.path.join(os.path.dirname(__file__), "data", "demo_industrial_data.csv")
+            if os.path.exists(csv_path):
+                with open(csv_path, "rb") as f:
+                    CSVService.process_csv_upload(db=_seed_db, facility_id=demo_facility.id, file_content=f.read())
+                try:
+                    LeakService.detect_and_sync_anomalies(db=_seed_db, facility_id=demo_facility.id)
+                except Exception as ex:
+                    logger.warning(f"Could not pre-calculate anomalies: {ex}")
+            logger.info("Initial facility and telemetry seeded successfully.")
+    except Exception as se:
+        logger.warning(f"Auto-seed check encountered: {se}")
+    finally:
+        _seed_db.close()
 except Exception as e:
-    logger.warning(f"Could not connect to database on startup: {e}")
+    logger.warning(f"Could not initialize database on startup: {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

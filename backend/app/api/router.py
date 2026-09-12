@@ -16,6 +16,7 @@ from app.api.routes import (
 api_router = APIRouter()
 
 api_router.include_router(facility.router)
+api_router.include_router(facility.facilities_router)
 api_router.include_router(upload.router)
 api_router.include_router(emissions.router)
 api_router.include_router(leaks.router)

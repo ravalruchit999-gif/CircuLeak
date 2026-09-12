@@ -10,7 +10,7 @@ router = APIRouter(prefix="/trajectory", tags=["Trajectory"])
 
 @router.get("/{facility_id}", response_model=APIResponse[TrajectoryResponse])
 def get_5year_trajectory(
-    facility_id: int,
+    facility_id: str,
     start_year: int = Query(2026, description="Trajectory start year"),
     end_year: int = Query(2030, description="Trajectory end year"),
     db: Session = Depends(get_db)

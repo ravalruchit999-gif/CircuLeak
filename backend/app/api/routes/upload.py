@@ -6,13 +6,14 @@ from app.schemas.upload import UploadSummaryResponse
 from app.schemas.common import APIResponse
 from app.services.csv_service import CSVService
 from app.services.leak_service import LeakService
+from app.utils.facility_resolver import resolve_facility_id
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
 
 @router.post("/csv", response_model=APIResponse[UploadSummaryResponse])
 async def upload_industrial_csv(
-    facility_id: int = Form(..., description="Target facility ID"),
+    facility_id: str = Form(..., description="Target facility ID"),
     file: UploadFile = File(..., description="Industrial time-series CSV file"),
     db: Session = Depends(get_db)
 ):
@@ -27,12 +28,14 @@ async def upload_industrial_csv(
         )
 
     try:
+        fac_id = resolve_facility_id(facility_id, db)
         content = await file.read()
-        summary = CSVService.process_csv_upload(db=db, facility_id=facility_id, file_content=content)
+        summary = CSVService.process_csv_upload(db=db, facility_id=fac_id, file_content=content)
+        summary["facility_id"] = facility_id
         
         # Pre-calculate and sync behavioral anomalies for faster downstream queries
         try:
-            LeakService.detect_and_sync_anomalies(db=db, facility_id=facility_id)
+            LeakService.detect_and_sync_anomalies(db=db, facility_id=fac_id)
         except Exception:
             pass
 

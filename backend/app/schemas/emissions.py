@@ -15,21 +15,22 @@ class EmissionsSummaryResponse(BaseModel):
     sector: str
     total_emissions: float  # in kgCO2e
     total_emissions_tonnes: float  # in tCO2e
+    total_emissions_annual: Optional[float] = None
     unit: str = "kgCO2e"
     emissions_intensity: float  # kgCO2e per unit of production
+    emission_intensity: Optional[float] = None
     total_production_volume: float
     total_electricity_kwh: float
-    by_source: List[EmissionsBreakdownItem]
-    by_process: List[EmissionsBreakdownItem]
-    by_equipment: List[EmissionsBreakdownItem]
-
-
-class EmissionsBreakdownResponse(BaseModel):
-    facility_id: int
-    total_emissions_kg: float
-    by_source: List[EmissionsBreakdownItem]
-    by_process: List[EmissionsBreakdownItem]
-    by_equipment: List[EmissionsBreakdownItem]
+    leak_count: Optional[int] = 0
+    high_risk_count: Optional[int] = 0
+    potential_reduction: Optional[float] = 0.0
+    potential_reduction_percent: Optional[float] = 0.0
+    annual_savings: Optional[float] = 0.0
+    investment_required: Optional[float] = 0.0
+    payback_years: Optional[float] = 0.0
+    by_source: List[EmissionsBreakdownItem] = []
+    by_process: List[EmissionsBreakdownItem] = []
+    by_equipment: List[EmissionsBreakdownItem] = []
 
 
 class TimelinePoint(BaseModel):
@@ -37,6 +38,16 @@ class TimelinePoint(BaseModel):
     emissions_kg: float
     electricity_kwh: float
     production_volume: float
+
+
+class EmissionsBreakdownResponse(BaseModel):
+    facility_id: int
+    total_emissions_kg: float
+    emission_intensity: Optional[float] = 0.0
+    by_source: List[EmissionsBreakdownItem] = []
+    by_process: List[EmissionsBreakdownItem] = []
+    by_equipment: List[EmissionsBreakdownItem] = []
+    timeline: Optional[List[TimelinePoint]] = []
 
 
 class EmissionsTimelineResponse(BaseModel):

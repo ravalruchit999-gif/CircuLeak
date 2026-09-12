@@ -20,13 +20,15 @@ try:
         pool_pre_ping=True,
         connect_args=connect_args
     )
+    # Actively test connection
+    with engine.connect() as conn:
+        pass
 except Exception as e:
-    logger.warning(f"Failed to initialize primary database with {db_url}: {e}. Falling back to SQLite for local development.")
+    logger.warning(f"Failed to connect to primary database with {db_url}: {e}. Falling back to SQLite for local development.")
     sqlite_fallback_url = "sqlite:///./circuleak.db"
     engine = create_engine(
         sqlite_fallback_url,
         echo=False,
-        pool_pre_ping=True,
         connect_args={"check_same_thread": False}
     )
 
