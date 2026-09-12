@@ -20,23 +20,119 @@ from app.services.csv_service import CSVService
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
 
+def generate_dynamic_telemetry_records() -> List[dict]:
+    """Generate a realistic, randomized multi-day industrial operational dataset."""
+    import random
+    import datetime
+
+    records = []
+    base_date = datetime.date.today() - datetime.timedelta(days=3)
+
+    # 4 distinct industrial machines across 3 days (72 hours)
+    for day_offset in range(3):
+        current_date_str = (base_date + datetime.timedelta(days=day_offset)).strftime("%Y-%m-%d")
+        for hour in range(24):
+            is_active_shift = 7 <= hour <= 21
+
+            # 1. Primary Air Compressor (Has unloader leak: draws 32-38 kWh during off-shift)
+            if is_active_shift:
+                comp_kwh = round(random.uniform(49.0, 56.5), 2)
+                comp_prod = round(random.uniform(18.0, 24.0), 1)
+                comp_hrs = 1.0
+            else:
+                # Off-hours leak: non-zero power with zero production
+                comp_kwh = round(random.uniform(33.0, 39.5), 2)
+                comp_prod = 0.0
+                comp_hrs = 0.0
+
+            records.append({
+                "date": current_date_str,
+                "hour": hour,
+                "equipment": "Primary Air Compressor",
+                "process": "Compressed Air Utility",
+                "electricity_kwh": comp_kwh,
+                "fuel_type": "none",
+                "fuel_quantity": 0.0,
+                "production_volume": comp_prod,
+                "operating_hours": comp_hrs
+            })
+
+            # 2. Induction Melting Furnace (Core heavy thermal/electrical asset)
+            if is_active_shift:
+                furn_kwh = round(random.uniform(390.0, 465.0), 2)
+                furn_fuel = round(random.uniform(32.0, 42.0), 2)
+                furn_prod = round(random.uniform(22.0, 28.5), 1)
+                furn_hrs = 1.0
+            else:
+                furn_kwh = round(random.uniform(18.0, 26.0), 2)
+                furn_fuel = round(random.uniform(5.0, 9.5), 2)
+                furn_prod = 0.0
+                furn_hrs = 0.0
+
+            records.append({
+                "date": current_date_str,
+                "hour": hour,
+                "equipment": "Induction Melting Furnace",
+                "process": "Melting & Casting",
+                "electricity_kwh": furn_kwh,
+                "fuel_type": "natural_gas",
+                "fuel_quantity": furn_fuel,
+                "production_volume": furn_prod,
+                "operating_hours": furn_hrs
+            })
+
+            # 3. Annealing Heat-Treat Oven (Thermal processing)
+            if 8 <= hour <= 20:
+                oven_kwh = round(random.uniform(165.0, 210.0), 2)
+                oven_fuel = round(random.uniform(15.5, 22.0), 2)
+                oven_prod = round(random.uniform(14.0, 19.5), 1)
+                oven_hrs = 1.0
+            else:
+                oven_kwh = round(random.uniform(6.0, 12.0), 2)
+                oven_fuel = round(random.uniform(1.0, 3.5), 2)
+                oven_prod = 0.0
+                oven_hrs = 0.0
+
+            records.append({
+                "date": current_date_str,
+                "hour": hour,
+                "equipment": "Annealing Heat-Treat Oven",
+                "process": "Thermal Processing",
+                "electricity_kwh": oven_kwh,
+                "fuel_type": "natural_gas",
+                "fuel_quantity": oven_fuel,
+                "production_volume": oven_prod,
+                "operating_hours": oven_hrs
+            })
+
+            # 4. Auxiliary Cooling Pumps (Continuous water loop)
+            pump_kwh = round(random.uniform(34.0, 42.0), 2)
+            pump_prod = round(random.uniform(18.0, 22.0), 1) if is_active_shift else 0.0
+            records.append({
+                "date": current_date_str,
+                "hour": hour,
+                "equipment": "Auxiliary Cooling Pumps",
+                "process": "Cooling Water Loop",
+                "electricity_kwh": pump_kwh,
+                "fuel_type": "none",
+                "fuel_quantity": 0.0,
+                "production_volume": pump_prod,
+                "operating_hours": 1.0 if is_active_shift else 0.5
+            })
+
+    return records
+
+
 @router.get("/template")
 async def download_telemetry_template(
-    format: str = Query("csv", description="Template format: 'csv' or 'xlsx'")
+    format: str = Query("csv", description="Template format: 'csv' or 'xlsx'"),
+    seed: Optional[int] = Query(None, description="Optional seed for deterministic generation")
 ):
     """
-    Download a sample industrial telemetry dataset template with the exact
-    canonical columns required by the ingestion pipeline.
+    Download a rich, dynamic multi-day industrial telemetry dataset with 72+ hourly rows.
+    Generates fresh randomized values on every request with realistic anomalies embedded.
     """
-    sample_records = [
-        {"date": "2026-03-01", "hour": 0, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 52.4, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 18.5, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 1, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 51.8, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 18.0, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 2, "equipment": "Primary Air Compressor", "process": "Compressed Air Utility", "electricity_kwh": 53.1, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 17.8, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 3, "equipment": "Induction Melting Furnace", "process": "Melting & Casting", "electricity_kwh": 420.5, "fuel_type": "natural_gas", "fuel_quantity": 35.0, "production_volume": 24.0, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 4, "equipment": "Induction Melting Furnace", "process": "Melting & Casting", "electricity_kwh": 435.0, "fuel_type": "natural_gas", "fuel_quantity": 36.2, "production_volume": 25.0, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 5, "equipment": "Annealing Heat-Treat Oven", "process": "Thermal Processing", "electricity_kwh": 180.2, "fuel_type": "natural_gas", "fuel_quantity": 18.5, "production_volume": 15.0, "operating_hours": 1.0},
-        {"date": "2026-03-01", "hour": 6, "equipment": "Auxiliary Cooling Pumps", "process": "Cooling Water Loop", "electricity_kwh": 38.4, "fuel_type": "none", "fuel_quantity": 0.0, "production_volume": 20.0, "operating_hours": 1.0},
-    ]
+    sample_records = generate_dynamic_telemetry_records()
     df = pd.DataFrame(sample_records)
 
     if format.lower() == "xlsx":

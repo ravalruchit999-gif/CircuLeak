@@ -7,7 +7,7 @@ import { StatusBadge } from '../ui/StatusBadge';
 export function CarbonHotspots({ hotspots = [] }) {
   const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
   const cumulativeEmissions = safeHotspots.reduce(
-    (acc, item) => acc + Number(item.daily_emissions || item.emissions || 0),
+    (acc, item) => acc + Number(item.daily_emissions ?? item.emissions ?? item.emissions_kg ?? item.calculated_emissions_kg ?? 0),
     0
   );
 
@@ -46,8 +46,8 @@ export function CarbonHotspots({ hotspots = [] }) {
               {safeHotspots.map((item, index) => {
                 const rank = item.rank || index + 1;
                 const eqName = item.equipment || `Asset #${rank}`;
-                const emissionsVal = Number(item.daily_emissions ?? item.emissions ?? 0);
-                const sharePct = Number(item.share_percent || 0);
+                const emissionsVal = Number(item.daily_emissions ?? item.emissions ?? item.emissions_kg ?? item.calculated_emissions_kg ?? 0);
+                const sharePct = Number(item.share_percent ?? item.percentage_of_total ?? 0);
 
                 return (
                   <tr

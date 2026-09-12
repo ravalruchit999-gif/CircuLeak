@@ -10,8 +10,8 @@ export function DataUpload() {
     const filename = isXlsx ? 'circuleak_telemetry_template.xlsx' : 'circuleak_telemetry_template.csv';
 
     try {
-      // Direct backend download with proper Content-Disposition and MIME headers
-      const response = await fetch(`http://127.0.0.1:8000/api/upload/template?format=${format}`);
+      // Direct backend download with proper Content-Disposition and fresh dynamic values
+      const response = await fetch(`http://127.0.0.1:8000/api/upload/template?format=${format}&t=${Date.now()}`);
       if (!response.ok) throw new Error('Backend template request failed');
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -23,17 +23,39 @@ export function DataUpload() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch {
-      // Fallback direct CSV blob generation
-      const csvContent =
-        'date,hour,equipment,process,electricity_kwh,fuel_type,fuel_quantity,production_volume,operating_hours\n' +
-        '2026-03-01,0,Primary Compressor,Compressed Air Utility,52.4,none,0,18.5,1\n' +
-        '2026-03-01,1,Primary Compressor,Compressed Air Utility,51.8,none,0,18.0,1\n' +
-        '2026-03-01,2,Primary Compressor,Compressed Air Utility,53.1,none,0,17.8,1\n' +
-        '2026-03-01,3,Primary Compressor,Compressed Air Utility,52.0,none,0,18.2,1\n' +
-        '2026-03-01,4,Induction Furnace,Melting & Casting,420.5,natural_gas,35.0,24.0,1\n' +
-        '2026-03-01,5,Induction Furnace,Melting & Casting,435.0,natural_gas,36.2,25.0,1\n' +
-        '2026-03-01,6,Annealing Oven,Thermal Processing,180.2,natural_gas,18.5,15.0,1\n' +
-        '2026-03-01,7,Auxiliary Pumps,Cooling Water Loop,38.4,none,0,20.0,1\n';
+      // Fallback dynamic multi-day CSV generation with embedded unloader leak
+      let csvContent = 'date,hour,equipment,process,electricity_kwh,fuel_type,fuel_quantity,production_volume,operating_hours\n';
+      const today = new Date();
+      for (let dayOffset = 2; dayOffset >= 0; dayOffset--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - dayOffset);
+        const dateStr = d.toISOString().slice(0, 10);
+
+        for (let hour = 0; hour < 24; hour++) {
+          const isActive = hour >= 7 && hour <= 21;
+          // 1. Primary Air Compressor (has unloader leak during off-hours)
+          const compKwh = isActive ? (50 + Math.random() * 6).toFixed(1) : (35 + Math.random() * 5).toFixed(1);
+          const compProd = isActive ? (18 + Math.random() * 5).toFixed(1) : '0';
+          const compHrs = isActive ? '1' : '0';
+          csvContent += `${dateStr},${hour},Primary Air Compressor,Compressed Air Utility,${compKwh},none,0,${compProd},${compHrs}\n`;
+
+          // 2. Induction Melting Furnace
+          const furnKwh = isActive ? (410 + Math.random() * 50).toFixed(1) : (20 + Math.random() * 8).toFixed(1);
+          const furnFuel = isActive ? (34 + Math.random() * 8).toFixed(1) : (6 + Math.random() * 3).toFixed(1);
+          const furnProd = isActive ? (23 + Math.random() * 5).toFixed(1) : '0';
+          csvContent += `${dateStr},${hour},Induction Melting Furnace,Melting & Casting,${furnKwh},natural_gas,${furnFuel},${furnProd},${compHrs}\n`;
+
+          // 3. Annealing Heat-Treat Oven
+          const ovenKwh = (hour >= 8 && hour <= 20) ? (180 + Math.random() * 25).toFixed(1) : (8 + Math.random() * 4).toFixed(1);
+          const ovenFuel = (hour >= 8 && hour <= 20) ? (18 + Math.random() * 4).toFixed(1) : '1.5';
+          const ovenProd = (hour >= 8 && hour <= 20) ? (16 + Math.random() * 3).toFixed(1) : '0';
+          csvContent += `${dateStr},${hour},Annealing Heat-Treat Oven,Thermal Processing,${ovenKwh},natural_gas,${ovenFuel},${ovenProd},${compHrs}\n`;
+
+          // 4. Auxiliary Cooling Pumps
+          const pumpKwh = (36 + Math.random() * 6).toFixed(1);
+          csvContent += `${dateStr},${hour},Auxiliary Cooling Pumps,Cooling Water Loop,${pumpKwh},none,0,20,1\n`;
+        }
+      }
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -78,11 +100,11 @@ export function DataUpload() {
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>
-            <strong>Spreadsheet Compatibility:</strong> Both raw CSV (<code className="text-emerald-300">.csv</code>) and native Microsoft Excel (<code className="text-emerald-300">.xlsx</code>, <code className="text-emerald-300">.xls</code>) spreadsheets are parsed and validated automatically.
+            <strong>Dynamic Telemetry:</strong> Generates fresh, randomized multi-day time-series logs (72+ hourly rows) with realistic unloader leaks and furnace profiles. Supports raw CSV (<code className="text-emerald-300">.csv</code>) and native Excel (<code className="text-emerald-300">.xlsx</code>).
           </span>
         </div>
-        <span className="hidden md:inline font-mono text-[11px] text-slate-500">
-          Windows: .csv defaults to Excel icon
+        <span className="hidden md:inline font-mono text-[11px] text-emerald-400">
+          Fresh Dataset Generated on Each Click
         </span>
       </div>
 

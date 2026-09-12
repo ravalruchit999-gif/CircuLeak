@@ -19,6 +19,7 @@ def test_template_download_csv_and_xlsx(client):
     assert "text/csv" in csv_resp.headers.get("content-type", "")
     assert "circuleak_telemetry_template.csv" in csv_resp.headers.get("content-disposition", "")
     assert b"equipment" in csv_resp.content
+    assert len(csv_resp.text.strip().split("\n")) >= 70
 
     # XLSX format
     xlsx_resp = client.get("/api/upload/template?format=xlsx")
