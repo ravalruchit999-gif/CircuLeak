@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { FacilityProvider } from './context/FacilityContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Auth & Admin Pages
 import { Login } from './pages/Login';
@@ -27,10 +28,11 @@ import AuditReport from './pages/AuditReport';
 
 export function App() {
   return (
-    <AuthProvider>
-      <FacilityProvider>
-        <BrowserRouter>
-          <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <FacilityProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Public Authentication Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -72,6 +74,7 @@ export function App() {
         </BrowserRouter>
       </FacilityProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
