@@ -13,7 +13,7 @@ import { Sparkles, ArrowLeft, Sliders } from 'lucide-react';
 
 export function LeakDetails() {
   const { id } = useParams();
-  const { selectedLeak, loading, error, refetch } = useLeaks(id || 'LEAK-01');
+  const { selectedLeak, loading, error, refetch } = useLeaks(id);
 
   if (loading) {
     return (
@@ -73,7 +73,7 @@ export function LeakDetails() {
             Ready to resolve this leak anomaly?
           </h4>
           <p className="text-xs text-slate-400 mt-0.5">
-            CircuLeak circular intelligence has formulated 4 engineering recommendations for this machine.
+            CircuLeak circular intelligence has formulated targeted engineering recommendations for this machine.
           </p>
         </div>
         <Link to="/recommendations">

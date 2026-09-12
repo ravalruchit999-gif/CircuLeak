@@ -13,24 +13,41 @@ import { SectionCard } from '../ui/SectionCard';
 import { customTooltipStyle } from '../../utils/chartHelpers';
 
 export function TrajectoryChart({ projection = [] }) {
-  // Ensure projection has fallback data if empty
-  const chartData = projection && projection.length > 0 ? projection : [
-    { year: '2026', bau_emissions: 12450, action_emissions: 10800 },
-    { year: '2027', bau_emissions: 12650, action_emissions: 9300 },
-    { year: '2028', bau_emissions: 12900, action_emissions: 8400 },
-    { year: '2029', bau_emissions: 13150, action_emissions: 7600 },
-    { year: '2030', bau_emissions: 13400, action_emissions: 6800 },
-  ];
+  const chartData = Array.isArray(projection) ? projection : [];
+
+  let reductionBadge = null;
+  if (chartData.length >= 2) {
+    const startBAU = chartData[0].bau_emissions || chartData[0].emissions || 0;
+    const endAction = chartData[chartData.length - 1].action_emissions || chartData[chartData.length - 1].emissions || 0;
+    if (startBAU > 0 && endAction > 0) {
+      const pct = Math.round(((startBAU - endAction) / startBAU) * 100);
+      reductionBadge = (
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
+          -{pct}% Projected Decarbonization
+        </span>
+      );
+    }
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <SectionCard
+        title="Decarbonization Trajectory Curve"
+        subtitle="Comparison between Business-As-Usual (BAU) emissions curve and CircuLeak recommended intervention pathway"
+      >
+        <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+          <p className="text-sm font-medium text-slate-300">No trajectory modeling points available</p>
+          <p className="text-xs text-slate-500 mt-1">Upload operational data to generate multi-year trajectory pathways.</p>
+        </div>
+      </SectionCard>
+    );
+  }
 
   return (
     <SectionCard
-      title="5-Year Decarbonization Trajectory (2026 — 2030)"
+      title="Decarbonization Trajectory (Multi-Year)"
       subtitle="Comparison between Business-As-Usual (BAU) emissions curve and CircuLeak recommended intervention pathway"
-      badge={
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
-          -49.2% Net Decarbonization
-        </span>
-      }
+      badge={reductionBadge}
     >
       <div className="w-full" style={{ height: 300, minHeight: 300 }}>
         <ResponsiveContainer width="100%" height={300}>

@@ -3,10 +3,25 @@ from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from app.models.process_data import ProcessData
 from app.models.facility import Facility
-from app.data.emission_factors import EMISSION_FACTORS
+from app.models.emission_factor import EmissionFactor
 
 
 class EmissionService:
+    @staticmethod
+    def get_grid_electricity_factor(db: Session) -> float:
+        """Retrieve active grid electricity factor from database (fallback 0.716)."""
+        ef = db.query(EmissionFactor).filter(
+            EmissionFactor.source_name == "grid_electricity",
+            EmissionFactor.is_active == True
+        ).first()
+        return ef.factor_value if ef else 0.716
+
+    @staticmethod
+    def get_active_factors_lookup(db: Session) -> Dict[str, EmissionFactor]:
+        """Retrieve all active emission factors from database."""
+        factors = db.query(EmissionFactor).filter(EmissionFactor.is_active == True).all()
+        return {f.source_name.lower(): f for f in factors}
+
     @staticmethod
     def get_emissions_dataframe(db: Session, facility_id: int) -> pd.DataFrame:
         """Fetch all process data for a facility as a pandas DataFrame."""
@@ -65,7 +80,7 @@ class EmissionService:
 
         # 1. By Source
         # Split electricity emissions vs fuel emissions
-        elec_factor = EMISSION_FACTORS["grid_electricity"]["factor"]
+        elec_factor = EmissionService.get_grid_electricity_factor(db)
         grid_emiss = float((df["electricity_kwh"] * elec_factor).sum())
 
         source_map: Dict[str, float] = {}
@@ -113,34 +128,16 @@ class EmissionService:
             for eq, val in equipment_grouped.items()
         ]
 
-        # Query leak metrics if available
-        try:
-            from app.models.leak import Leak
-            leak_count = db.query(Leak).filter(Leak.facility_id == facility_id).count()
-            high_risk_count = db.query(Leak).filter(Leak.facility_id == facility_id, Leak.risk_score >= 70).count()
-        except Exception:
-            leak_count = 7
-            high_risk_count = 3
-
         return {
             "facility_id": facility_id,
             "business_name": facility.business_name,
             "sector": facility.sector,
             "total_emissions": round(total_emissions, 2),
             "total_emissions_tonnes": round(total_emissions / 1000.0, 2),
-            "total_emissions_annual": round((total_emissions * 365) / 1000.0, 1) if total_emissions > 0 else 0.0,
             "unit": "kgCO2e",
             "emissions_intensity": intensity,
-            "emission_intensity": intensity,
             "total_production_volume": round(total_production, 2),
             "total_electricity_kwh": round(total_elec_kwh, 2),
-            "leak_count": max(leak_count, 1),
-            "high_risk_count": max(high_risk_count, 1),
-            "potential_reduction": round(total_emissions * 0.253, 1),
-            "potential_reduction_percent": 25.3,
-            "annual_savings": 420000.0,
-            "investment_required": 650000.0,
-            "payback_years": 1.55,
             "by_source": by_source,
             "by_process": by_process,
             "by_equipment": by_equipment
@@ -150,23 +147,45 @@ class EmissionService:
     def calculate_breakdown(db: Session, facility_id: int) -> Dict[str, Any]:
         """Return categorical breakdown for frontend charts."""
         summary = EmissionService.calculate_summary(db, facility_id)
-        timeline_res = EmissionService.calculate_timeline(db, facility_id, "daily")
         return {
             "facility_id": facility_id,
             "total_emissions_kg": summary["total_emissions"],
-            "emission_intensity": summary["emissions_intensity"],
             "by_source": summary["by_source"],
             "by_process": summary["by_process"],
-            "by_equipment": summary["by_equipment"],
-            "timeline": timeline_res.get("points", [])
+            "by_equipment": summary["by_equipment"]
         }
 
     @staticmethod
     def calculate_timeline(db: Session, facility_id: int, timeline_type: str = "daily") -> Dict[str, Any]:
-        """Aggregate emissions across daily or monthly intervals."""
+        """Aggregate emissions across daily, hourly, or monthly intervals."""
         df = EmissionService.get_emissions_dataframe(db, facility_id)
         if df.empty:
             return {"facility_id": facility_id, "timeline_type": timeline_type, "points": []}
+
+        if timeline_type == "hourly":
+            hourly_df = df.groupby("hour").agg({
+                "calculated_emissions_kg": "sum",
+                "electricity_kwh": "sum",
+                "production_volume": "sum"
+            }).reset_index().sort_values("hour")
+
+            points = [
+                {
+                    "date": f"{int(row['hour']):02d}:00",
+                    "hour": int(row["hour"]),
+                    "emissions_kg": round(float(row["calculated_emissions_kg"]), 2),
+                    "electricity_kwh": round(float(row["electricity_kwh"]), 2),
+                    "production_volume": round(float(row["production_volume"]), 2),
+                    "actual": round(float(row["calculated_emissions_kg"]), 2),
+                    "baseline": round(float(row["calculated_emissions_kg"]) * 0.85, 2)
+                }
+                for _, row in hourly_df.iterrows()
+            ]
+            return {
+                "facility_id": facility_id,
+                "timeline_type": "hourly",
+                "points": points
+            }
 
         # Daily aggregation
         daily_df = df.groupby("date").agg({
@@ -178,9 +197,12 @@ class EmissionService:
         points = [
             {
                 "date": str(row["date"]),
+                "hour": None,
                 "emissions_kg": round(float(row["calculated_emissions_kg"]), 2),
                 "electricity_kwh": round(float(row["electricity_kwh"]), 2),
-                "production_volume": round(float(row["production_volume"]), 2)
+                "production_volume": round(float(row["production_volume"]), 2),
+                "actual": round(float(row["calculated_emissions_kg"]), 2),
+                "baseline": round(float(row["calculated_emissions_kg"]) * 0.85, 2)
             }
             for _, row in daily_df.iterrows()
         ]
@@ -201,7 +223,7 @@ class EmissionService:
         if df.empty:
             return {"facility_id": facility_id, "nodes": [], "links": []}
 
-        elec_factor = EMISSION_FACTORS["grid_electricity"]["factor"]
+        elec_factor = EmissionService.get_grid_electricity_factor(db)
         nodes_set = set()
         links: List[Dict[str, Any]] = []
 

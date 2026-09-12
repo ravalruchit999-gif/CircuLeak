@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 
@@ -18,29 +18,8 @@ class RecommendationResponse(BaseModel):
     is_standard: bool = True
     match_score: Optional[float] = None
     match_reason: Optional[str] = None
-    co2_reduction: Optional[float] = None
-    investment: Optional[float] = None
-    annual_savings: Optional[float] = None
-    payback_years: Optional[float] = None
-    why_recommended: Optional[str] = None
-    effort_level: Optional[str] = None
-    impact_level: Optional[str] = None
-    implementation_time: Optional[str] = None
-    phase: Optional[str] = None
-    priority_score: Optional[float] = None
-    engineering_specs: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class RecommendationsStructuredResponse(BaseModel):
-    facility_id: Union[int, str]
-    total_recommendations: int
-    aggregate_summary: Dict[str, Any]
-    items: List[RecommendationResponse]
-    priority_matrix: List[Dict[str, Any]] = []
-    action_plan_phases: List[Dict[str, Any]] = []
-
 
 
 class PriorityItem(BaseModel):

@@ -12,6 +12,8 @@ class Leak(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     facility_id = Column(Integer, ForeignKey("facilities.id", ondelete="CASCADE"), nullable=False, index=True)
+    upload_id = Column(Integer, ForeignKey("data_uploads.id", ondelete="SET NULL"), nullable=True, index=True)
+    analysis_run_id = Column(String(100), ForeignKey("analysis_runs.id", ondelete="SET NULL"), nullable=True, index=True)
     leak_type = Column(String(50), nullable=False)  # "structural" (hotspot) or "behavioral" (anomaly)
     equipment = Column(String(150), nullable=False, index=True)
     process = Column(String(150), nullable=False, index=True)
@@ -28,3 +30,5 @@ class Leak(Base):
 
     # Relationships
     facility = relationship("Facility", back_populates="leaks")
+    upload = relationship("DataUpload")
+    analysis_run = relationship("AnalysisRun")

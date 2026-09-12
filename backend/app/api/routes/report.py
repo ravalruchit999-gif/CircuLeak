@@ -1,10 +1,13 @@
 import os
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.config import settings
-from app.core.security import sanitize_filename
+from app.core.security import sanitize_filename, get_current_user, get_authorized_facility_id
+from app.models.user import User
 from app.schemas.report import ReportGenerateRequest, ReportGenerateResponse
 from app.schemas.common import APIResponse
 from app.services.report_service import ReportService
@@ -13,10 +16,15 @@ router = APIRouter(prefix="/report", tags=["Report"])
 
 
 @router.post("/generate", response_model=APIResponse[ReportGenerateResponse])
-def generate_audit_report(request: ReportGenerateRequest, db: Session = Depends(get_db)):
-    """Generate a downloadable executive PDF carbon audit report (12 formal sections)."""
+def generate_audit_report(
+    request: ReportGenerateRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a downloadable executive PDF carbon audit report (multi-tenancy protected)."""
+    target_id = get_authorized_facility_id(request.facility_id, current_user)
     try:
-        report_meta = ReportService.generate_pdf_report(db=db, facility_id=request.facility_id)
+        report_meta = ReportService.generate_pdf_report(db=db, facility_id=target_id)
         return APIResponse(success=True, data=ReportGenerateResponse(**report_meta))
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))

@@ -1,18 +1,28 @@
 import { apiRequest } from './apiClient';
 import { ENDPOINTS } from '../constants/api';
-import { facilityMock } from '../data/facilityMock';
 
-export async function getFacility(facilityId = 'FAC-8842') {
-  return apiRequest(ENDPOINTS.FACILITY_BY_ID(facilityId), {
+export async function getFacility(facilityId) {
+  if (!facilityId) {
+    return { success: true, data: null };
+  }
+  const res = await apiRequest(ENDPOINTS.FACILITY_BY_ID(facilityId), {
     method: 'GET',
-    mockData: facilityMock,
   });
+
+  if (res.data) {
+    const raw = res.data;
+    res.data = {
+      ...raw,
+      facility_name: raw.business_name || raw.facility_name || `Facility #${raw.id}`,
+    };
+  }
+
+  return res;
 }
 
 export async function createOrUpdateFacility(facilityData) {
   return apiRequest(ENDPOINTS.FACILITY, {
     method: 'POST',
     body: JSON.stringify(facilityData),
-    mockData: { ...facilityMock, ...facilityData },
   });
 }

@@ -18,18 +18,23 @@ export function EmissionByProcess({ processes = [] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#181e2b]">
-            {processes.map((proc) => (
-              <tr key={proc.process} className="hover:bg-[#151a24]/50 transition-colors">
-                <td className="py-2.5 font-semibold text-slate-200">{proc.process}</td>
-                <td className="py-2.5 text-slate-400">{proc.primary_energy}</td>
-                <td className="py-2.5 text-right font-mono font-medium text-slate-100">
-                  {proc.emissions_kg.toLocaleString()} kgCO₂e
-                </td>
-                <td className="py-2.5 text-right font-mono text-slate-300">
-                  {proc.share_percent}%
-                </td>
-              </tr>
-            ))}
+            {processes.map((proc) => {
+              const name = proc.process || proc.name;
+              const share = proc.share_percent ?? proc.percentage_of_total ?? 0;
+              const energy = proc.primary_energy || (name?.includes('Steam') || name?.includes('Thermal') ? 'Natural Gas' : 'Grid Electricity');
+              return (
+                <tr key={name} className="hover:bg-[#151a24]/50 transition-colors">
+                  <td className="py-2.5 font-semibold text-slate-200">{name}</td>
+                  <td className="py-2.5 text-slate-400">{energy}</td>
+                  <td className="py-2.5 text-right font-mono font-medium text-slate-100">
+                    {(proc.emissions_kg || 0).toLocaleString()} kgCO₂e
+                  </td>
+                  <td className="py-2.5 text-right font-mono text-slate-300">
+                    {share}%
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

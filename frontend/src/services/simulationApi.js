@@ -1,50 +1,69 @@
 import { apiRequest } from './apiClient';
-import { ENDPOINTS } from '../constants/api';
-import { simulationMock } from '../data/simulationMock';
-import { round } from '../utils/numbers';
+import { ENDPOINTS, toApiFacilityId } from '../constants/api';
 
-export async function getSimulationScenarios(facilityId = 'FAC-8842') {
-  const res = await apiRequest(`${ENDPOINTS.SIMULATION_SCENARIOS}?facility_id=${encodeURIComponent(facilityId)}`, {
-    method: 'GET',
-    mockData: simulationMock.scenarios,
+const REC_ID_MAP = {
+  'REC-01': 'auto_idle_shutdown',
+  'REC-02': 'whr_boiler_flue',
+  'REC-03': 'condensate_steam_recovery',
+  'REC-04': 'rooftop_solar_pv',
+  'REC-05': 'fuel_switch_biomass_briquettes',
+};
+
+export async function getSimulationScenarios(facilityId) {
+  const res = await apiRequest(ENDPOINTS.SIMULATION_SCENARIOS, {
+    method: 'POST',
+    body: JSON.stringify({ facility_id: toApiFacilityId(facilityId) }),
   });
-  if (res && res.data && Array.isArray(res.data.scenarios)) {
-    return { ...res, data: res.data.scenarios };
+
+  if (res.data && res.data.scenarios) {
+    const rawList = res.data.scenarios;
+    const normalized = rawList.map((sc, idx) => ({
+      id: sc.id || sc.scenario_name.toLowerCase().replace(/\s+/g, '_'),
+      name: sc.scenario_name || sc.name,
+      subtitle: sc.focus_strategy || sc.subtitle || 'Automated scenario calculation',
+      reduction: sc.emission_reduction ?? sc.reduction ?? 0,
+      reduction_percent: sc.reduction_percent ?? 0,
+      investment: sc.investment ?? 0,
+      annual_savings: sc.annual_savings ?? 0,
+      payback_years: sc.payback_years ?? 0,
+      five_year_savings: (sc.annual_savings ? sc.annual_savings * 5 : 0) - (sc.investment || 0),
+      selected_interventions: sc.selected_interventions || [],
+      tag: idx === 0 ? 'Fastest Payback' : idx === 1 ? 'Balanced Plan' : 'Highest CO₂ Abatement',
+    }));
+    return { ...res, data: normalized };
   }
-  return res;
+
+  return { ...res, data: [] };
 }
 
-export async function simulateWhatIf(interventionIds = [], facilityId = 'FAC-8842') {
-  // Calculate mock simulation result based on backend contract
-  const allInterventions = simulationMock.available_interventions;
-  const selected = allInterventions.filter((item) => interventionIds.includes(item.id));
+export async function simulateWhatIf(interventionIds = [], facilityId) {
+  const mappedIds = interventionIds.map((id) => REC_ID_MAP[id] || id);
 
-  const totalReduction = selected.reduce((acc, curr) => acc + curr.co2_reduction, 0);
-  const totalInvestment = selected.reduce((acc, curr) => acc + curr.investment, 0);
-  const totalAnnualSavings = selected.reduce((acc, curr) => acc + curr.annual_savings, 0);
-
-  const baseline = simulationMock.baseline_emissions;
-  const projected = Math.max(baseline - totalReduction, 0);
-  const reductionPercent = baseline > 0 ? round((totalReduction / baseline) * 100, 1) : 0;
-  const payback = totalAnnualSavings > 0 ? round(totalInvestment / totalAnnualSavings, 2) : 0;
-  const fiveYearSavings = totalAnnualSavings * 5;
-
-  const mockResult = {
-    facility_id: facilityId,
-    baseline_emissions: baseline,
-    projected_emissions: projected,
-    reduction: totalReduction,
-    reduction_percent: reductionPercent,
-    investment: totalInvestment,
-    annual_savings: totalAnnualSavings,
-    payback_years: payback,
-    five_year_savings: fiveYearSavings,
-    selected_count: selected.length,
-  };
-
-  return apiRequest(ENDPOINTS.SIMULATION_WHAT_IF, {
+  const res = await apiRequest(ENDPOINTS.SIMULATION_WHAT_IF, {
     method: 'POST',
-    body: JSON.stringify({ facility_id: facilityId, intervention_ids: interventionIds }),
-    mockData: mockResult,
+    body: JSON.stringify({
+      facility_id: toApiFacilityId(facilityId),
+      intervention_ids: mappedIds,
+    }),
   });
+
+  if (res.data) {
+    const raw = res.data;
+    const reduction = raw.reduction ?? raw.total_reduction ?? 0;
+    res.data = {
+      ...raw,
+      reduction,
+      total_reduction: reduction,
+      baseline_emissions: raw.baseline_emissions ?? 0,
+      projected_emissions: raw.projected_emissions ?? 0,
+      reduction_percent: raw.reduction_percent ?? 0,
+      investment: raw.investment ?? 0,
+      annual_savings: raw.annual_savings ?? 0,
+      payback_years: raw.payback_years ?? 0,
+      five_year_savings: raw.five_year_savings ?? 0,
+      selected_count: interventionIds.length,
+    };
+  }
+
+  return res;
 }

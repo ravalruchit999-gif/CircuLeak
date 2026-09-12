@@ -3,13 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { RecommendationImpact } from '../components/recommendations/RecommendationImpact';
 import { RecommendationList } from '../components/recommendations/RecommendationList';
 import { PriorityMatrix } from '../components/recommendations/PriorityMatrix';
 import { RecommendationDetails } from '../components/recommendations/RecommendationDetails';
 import { Button } from '../components/ui/Button';
-import { Sliders, ListChecks } from 'lucide-react';
+import { Sliders, ListChecks, Sparkles } from 'lucide-react';
 
 export function Recommendations() {
   const navigate = useNavigate();
@@ -34,6 +35,26 @@ export function Recommendations() {
     );
   }
 
+  const hasItems = data && Array.isArray(data.items) && data.items.length > 0;
+
+  if (!hasItems) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Circular Alternatives & Engineering Interventions"
+          subtitle="Ranked circular solutions formulated to eliminate carbon leaks and optimize thermal & auxiliary efficiency"
+        />
+        <EmptyState
+          icon={Sparkles}
+          title="No Recommendations Generated"
+          description="Circular engineering interventions and economic ROI models are dynamically matched after operational telemetry or anomalies are detected."
+          actionText="Upload Operational Telemetry"
+          actionLink="/data-upload"
+        />
+      </div>
+    );
+  }
+
   const handleSimulate = (interventionId) => {
     navigate('/simulation');
   };
@@ -45,7 +66,7 @@ export function Recommendations() {
         subtitle="Ranked circular solutions formulated to eliminate carbon leaks and optimize thermal & auxiliary efficiency"
         badge={
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-            4 Actionable Packages
+            {data.items.length} {data.items.length === 1 ? 'Actionable Package' : 'Actionable Packages'}
           </span>
         }
         actions={
@@ -68,11 +89,11 @@ export function Recommendations() {
       <RecommendationImpact data={data} />
 
       {/* Priority 2x2 Matrix */}
-      <PriorityMatrix matrix={data?.priority_matrix} />
+      {data.priority_matrix && <PriorityMatrix matrix={data.priority_matrix} />}
 
       {/* Filterable Candidate List */}
       <RecommendationList
-        recommendations={data?.items}
+        recommendations={data.items}
         onSelect={(rec) => setSelectedRecommendation(rec)}
         onSimulate={handleSimulate}
       />

@@ -18,12 +18,47 @@ import {
   FileText,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useFacilityContext } from '../../context/FacilityContext';
+import { UploadCloud } from 'lucide-react';
 
 export function DashboardOverview({ data }) {
+  const { facilityName, currentFacilityId } = useFacilityContext();
   if (!data) return null;
+
+  const isZeroRecords = !data.metrics?.total_emissions || data.metrics.total_emissions === 0;
 
   return (
     <div className="space-y-6">
+      {/* Onboarding Ingestion Banner for Empty / New Facilities */}
+      {isZeroRecords && (
+        <div className="p-5 rounded-lg bg-gradient-to-r from-emerald-950/60 via-[#111e1c] to-[#121620] border border-emerald-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0 mt-0.5">
+              <UploadCloud className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-white tracking-tight">
+                  Ready to Ingest Telemetry for {facilityName}
+                </h4>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">
+                  Awaiting Telemetry
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Your facility is active in PostgreSQL. Upload your operational telemetry CSV (energy consumption, fuel inputs, and production volumes) to dynamically trigger carbon footprint computation, detect carbon leaks, and calculate circularity indexes.
+              </p>
+            </div>
+          </div>
+
+          <Link to="/data-upload" className="shrink-0">
+            <Button variant="primary" size="md" icon={UploadCloud}>
+              Upload Telemetry CSV
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* 1. Executive Industrial Operational Health Bar */}
       <div className="p-4 rounded-lg bg-gradient-to-r from-[#141a24] via-[#121620] to-[#151a24] border border-[#232c3d] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -33,20 +68,26 @@ export function DashboardOverview({ data }) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-bold text-white tracking-tight">
-                Apex Metals & Casting Unit 4
+                {facilityName}
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                Continuous Melting • 45k Tonnes/yr
+                Facility ID: {currentFacilityId}
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold animate-pulse">
-                Active Leak Detected
-              </span>
+              {isZeroRecords ? (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
+                  0 Records Ingested
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold animate-pulse">
+                  Active Leak Detected
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-slate-400" /> Current Operating Shift: Night (22:00 — 06:00)
+                <Clock className="w-3 h-3 text-slate-400" /> Current Operating Shift: Active Telemetry
               </span>
-              <span>• Vadodara Industrial Estate</span>
+              <span>• Industrial Corridor Database</span>
             </p>
           </div>
         </div>
@@ -87,7 +128,7 @@ export function DashboardOverview({ data }) {
           <ReductionPotential recommendation={data.top_recommended_action} />
         </div>
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col">
-          <EmissionBreakdown sources={data.emission_sources} />
+          <EmissionBreakdown sources={data.emission_sources} intensity={data.metrics?.emissions_intensity} />
         </div>
       </div>
 
@@ -109,25 +150,29 @@ export function DashboardOverview({ data }) {
               1. WHERE are the leaks?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Carbon Leak Points Registry
+              Carbon Leak Registry
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              7 flagged equipment anomalies →
+              {data.anomalies_summary?.active_anomalies > 0
+                ? `${data.anomalies_summary.active_anomalies} flagged equipment anomalies →`
+                : 'No active anomalies detected →'}
             </span>
           </Link>
 
           <Link
-            to="/leaks/LEAK-01"
+            to="/leaks"
             className="p-3 rounded bg-[#151923] border border-[#222938] hover:border-amber-600/60 transition-colors group"
           >
             <span className="text-[10px] font-mono text-amber-400 font-bold uppercase block mb-1">
               2. WHY were they flagged?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Compressor 03 Diagnostics
+              Anomaly Diagnostics
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              +45% off-hours unloader bleed →
+              {data.top_hotspots?.[0]?.equipment
+                ? `${data.top_hotspots[0].equipment} (${data.top_hotspots[0].share_percent}% share) →`
+                : 'Root-cause baseline deviation →'}
             </span>
           </Link>
 
@@ -139,10 +184,12 @@ export function DashboardOverview({ data }) {
               3. WHAT can fix them?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Circular Alternatives
+              Circular Interventions
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              4 costed engineering packages →
+              {data.top_recommended_action?.title
+                ? `${data.top_recommended_action.title} →`
+                : 'Costed engineering alternatives →'}
             </span>
           </Link>
 
@@ -157,7 +204,9 @@ export function DashboardOverview({ data }) {
               What-If Simulator & ROI
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              ₹4.2L/yr savings & 1.55 yr payback →
+              {data.top_recommended_action?.annual_savings
+                ? `₹${(data.top_recommended_action.annual_savings / 100000).toFixed(1)}L/yr savings (${data.top_recommended_action.payback_years} yr payback) →`
+                : 'Model intervention bundles →'}
             </span>
           </Link>
         </div>

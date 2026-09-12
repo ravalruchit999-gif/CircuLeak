@@ -63,10 +63,15 @@ class RecommendationService:
     def get_facility_recommendations(db: Session, facility_id: int) -> List[Dict[str, Any]]:
         """
         Match circular interventions to facility's active equipment, hotspots, and anomalies.
+        If no telemetry or anomalies exist, returns empty list (no fake recommendations).
         """
         summary = EmissionService.calculate_summary(db, facility_id)
         hotspots = LeakService.get_structural_hotspots(db, facility_id).get("hotspots", [])
         anomalies = LeakService.get_anomalies(db, facility_id).get("anomalies", [])
+
+        # Strict: never generate fake recommendations when facility has zero data or anomalies
+        if summary.get("total_emissions", 0) == 0 or (not hotspots and not anomalies):
+            return []
 
         # Build query context from top hotspots and anomalies
         top_eqs = [h["equipment"] for h in hotspots[:4]]
@@ -87,76 +92,10 @@ class RecommendationService:
                 m["match_reason"] = f"Direct equipment match for {m.get('target_equipment', '')} flagged as top carbon hotspot/leak."
 
         matches.sort(key=lambda x: float(x.get("match_score", 0.0) or 0.0), reverse=True)
-        
-        # Format frontend-friendly metrics on each recommendation item
-        for idx, m in enumerate(matches, start=1):
-            m["alias_id"] = f"REC-{idx:02d}"
-            ann_kg = float(m.get("estimated_co2_reduction_annual_kg", 18500.0))
-            cost = float(m.get("estimated_cost_inr", 350000.0))
-            savings = float(m.get("annual_savings_inr", 180000.0))
-            payback = float(m.get("payback_period_years", 1.94))
-            m["co2_reduction"] = round(ann_kg / 365.0, 1)
-            m["investment"] = cost
-            m["annual_savings"] = savings
-            m["payback_years"] = payback
-            m["why_recommended"] = m.get("match_reason") or m.get("description")
-            m["effort_level"] = "Low Effort" if cost < 100000 else ("Medium Effort" if cost < 300000 else "High Effort")
-            m["impact_level"] = "High Impact" if (ann_kg / 365.0) > 15 else "Medium Impact"
-            m["implementation_time"] = "2 Weeks" if cost < 100000 else "6 Weeks"
-            m["phase"] = "Immediate" if idx == 1 else ("Short Term" if idx == 2 else "Medium Term")
-            m["priority_score"] = max(50.0, float(98 - idx * 5))
-            m["engineering_specs"] = {
-                "equipment_type": m.get("target_equipment", "Industrial Machinery"),
-                "requirements": m.get("requirements", "Standard maintenance shutdown"),
-                "feasibility": m.get("feasibility", "High")
-            }
-
-        return matches
-
-    @staticmethod
-    def get_structured_recommendations_response(db: Session, facility_id: int) -> Dict[str, Any]:
-        """Return comprehensive recommendations bundle for Recommendations & Action Planner screens."""
-        items = RecommendationService.get_facility_recommendations(db, facility_id)
-        top_items = items[:4]
-        tot_capex = sum(float(i.get("investment", 0.0)) for i in top_items)
-        tot_savings = sum(float(i.get("annual_savings", 0.0)) for i in top_items)
-        tot_co2 = sum(float(i.get("co2_reduction", 0.0)) for i in top_items)
-        payback = round(tot_capex / tot_savings, 2) if tot_savings > 0 else 1.55
-
-        priority_matrix = [
-            {
-                "id": i.get("id"),
-                "alias_id": i.get("alias_id"),
-                "title": i.get("title"),
-                "effort": i.get("effort_level"),
-                "impact": i.get("impact_level"),
-                "score": i.get("priority_score"),
-                "co2_reduction": i.get("co2_reduction"),
-                "annual_savings": i.get("annual_savings")
-            }
-            for i in top_items
-        ]
-        action_plan_phases = [
-            {"phase": "Phase 1: Immediate (Month 1-3)", "items": [top_items[0]["title"]] if top_items else []},
-            {"phase": "Phase 2: Short Term (Month 4-6)", "items": [top_items[1]["title"]] if len(top_items) > 1 else []},
-            {"phase": "Phase 3: Medium Term (Month 7-12)", "items": [i["title"] for i in top_items[2:]]}
-        ]
-
-        return {
-            "facility_id": facility_id,
-            "total_recommendations": len(top_items),
-            "aggregate_summary": {
-                "total_interventions": len(top_items),
-                "total_capex": tot_capex,
-                "annual_savings": tot_savings,
-                "payback_years": payback,
-                "co2_reduction_kg_day": tot_co2,
-                "co2_reduction_percent": 25.3
-            },
-            "items": top_items,
-            "priority_matrix": priority_matrix,
-            "action_plan_phases": action_plan_phases
-        }
+        # Enforce statistical relevance threshold: do not return arbitrary candidates
+        MIN_RECOMMENDATION_SIMILARITY = 0.15
+        relevant_matches = [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= MIN_RECOMMENDATION_SIMILARITY]
+        return relevant_matches
 
     @staticmethod
     def get_recommendations_for_leak(db: Session, leak_id: int) -> List[Dict[str, Any]]:
@@ -170,4 +109,6 @@ class RecommendationService:
         query_text = f"{leak_detail.get('equipment', '')} {leak_detail.get('process', '')} {leak_detail.get('reason', '')} {causes_str}"
 
         matches = RecommendationService._semantic_similarity_match(query_text, DEFAULT_RECOMMENDATIONS)
-        return [m for m in matches if float(m.get("match_score", 0.0) or 0.0) > 0.05][:5]
+        MIN_RECOMMENDATION_SIMILARITY = 0.15
+        return [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= MIN_RECOMMENDATION_SIMILARITY][:5]
+

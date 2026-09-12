@@ -1,7 +1,10 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
+from app.core.security import get_current_user, get_authorized_facility_id
+from app.models.user import User
 from app.schemas.simulation import (
     WhatIfRequest,
     WhatIfResponse,
@@ -10,22 +13,25 @@ from app.schemas.simulation import (
 )
 from app.schemas.common import APIResponse
 from app.services.simulation_service import SimulationService
-from app.utils.facility_resolver import resolve_facility_id
 
 router = APIRouter(prefix="/simulation", tags=["Simulation"])
 
 
 @router.post("/what-if", response_model=APIResponse[WhatIfResponse])
-def run_what_if_simulation(request: WhatIfRequest, db: Session = Depends(get_db)):
+def run_what_if_simulation(
+    request: WhatIfRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Run deterministic What-If simulation for a selected set of circular interventions.
     Computes emissions reduction, capital investment, annual savings, and payback period.
     """
+    target_id = get_authorized_facility_id(request.facility_id, current_user)
     try:
-        fac_id = resolve_facility_id(request.facility_id, db)
         result = SimulationService.simulate_what_if(
             db=db,
-            facility_id=fac_id,
+            facility_id=target_id,
             intervention_ids=request.intervention_ids
         )
         return APIResponse(success=True, data=WhatIfResponse(**result))
@@ -33,29 +39,34 @@ def run_what_if_simulation(request: WhatIfRequest, db: Session = Depends(get_db)
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
 
 
-@router.get("/scenarios", response_model=APIResponse[ScenarioResponse])
-def get_scenarios(facility_id: str = Query(default="1"), db: Session = Depends(get_db)):
+@router.post("/scenarios", response_model=APIResponse[ScenarioResponse])
+def compare_scenarios(
+    request: ScenarioRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
-    Get predefined decarbonization scenarios for the facility:
+    Generate and compare three predefined decarbonization scenarios:
     'Cost Saver', 'Balanced', and 'Maximum Decarbonization'.
     """
+    target_id = get_authorized_facility_id(request.facility_id, current_user)
     try:
-        fac_id = resolve_facility_id(facility_id, db)
-        result = SimulationService.compare_scenarios(db=db, facility_id=fac_id)
+        result = SimulationService.compare_scenarios(db=db, facility_id=target_id)
         return APIResponse(success=True, data=ScenarioResponse(**result))
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
 
 
-@router.post("/scenarios", response_model=APIResponse[ScenarioResponse])
-def compare_scenarios_post(request: ScenarioRequest, db: Session = Depends(get_db)):
-    """
-    Generate and compare three predefined decarbonization scenarios via POST.
-    """
+@router.get("/scenarios/{facility_id}", response_model=APIResponse[ScenarioResponse])
+def get_scenarios_by_id(
+    facility_id: int,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """GET endpoint for retrieving strategic scenario presets for a facility."""
+    target_id = get_authorized_facility_id(facility_id, current_user)
     try:
-        fac_id = resolve_facility_id(request.facility_id, db)
-        result = SimulationService.compare_scenarios(db=db, facility_id=fac_id)
+        result = SimulationService.compare_scenarios(db=db, facility_id=target_id)
         return APIResponse(success=True, data=ScenarioResponse(**result))
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
-

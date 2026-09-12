@@ -2,13 +2,14 @@ import React from 'react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useTrajectory } from '../hooks/useTrajectory';
 import { TrajectoryChart } from '../components/trajectory/TrajectoryChart';
 import { TrajectorySummary } from '../components/trajectory/TrajectorySummary';
 import { CumulativeImpact } from '../components/trajectory/CumulativeImpact';
 import { RoadmapTimeline } from '../components/trajectory/RoadmapTimeline';
 import { Button } from '../components/ui/Button';
-import { BarChart3, FileText } from 'lucide-react';
+import { BarChart3, FileText, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Trajectory() {
@@ -32,15 +33,37 @@ export function Trajectory() {
     );
   }
 
+  const hasData = data && data.has_data && Array.isArray(data.yearly_projection) && data.yearly_projection.length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="5-Year Decarbonization Trajectory & Long-Term Roadmap"
+          subtitle="Projection comparing Business-As-Usual against progressive CircuLeak interventions"
+        />
+        <EmptyState
+          icon={TrendingDown}
+          title="Trajectory Modeling Requires Baseline Telemetry"
+          description="5-year decarbonization modeling and dynamic roadmap sequencing require operational energy telemetry to model business-as-usual vs intervention curves."
+          actionText="Upload Telemetry Dataset"
+          actionLink="/upload"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="5-Year Decarbonization Trajectory & Long-Term Roadmap"
-        subtitle="2026 to 2030 projection comparing Business-As-Usual against progressive CircuLeak interventions"
+        subtitle={`${data.baseline_year || 2026} to ${data.target_year || 2030} projection comparing Business-As-Usual against progressive CircuLeak interventions`}
         badge={
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-            Net -49.2% by 2030
-          </span>
+          data.reduction_percentage ? (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+              Net -{data.reduction_percentage}% by {data.target_year || 2030}
+            </span>
+          ) : null
         }
         actions={
           <div className="flex items-center gap-2">
@@ -60,11 +83,11 @@ export function Trajectory() {
 
       <TrajectorySummary trajectory={data} />
 
-      <TrajectoryChart projection={data?.yearly_projection} />
+      <TrajectoryChart projection={data.yearly_projection} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CumulativeImpact yearlyData={data?.yearly_projection} />
-        <RoadmapTimeline milestones={data?.roadmap_milestones} />
+        <CumulativeImpact yearlyData={data.yearly_projection} />
+        <RoadmapTimeline milestones={data.roadmap_milestones} />
       </div>
     </div>
   );

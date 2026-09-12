@@ -5,14 +5,16 @@ import { formatCurrency, formatPayback } from '../../utils/formatters';
 export function EmissionSummary({ metrics }) {
   if (!metrics) return null;
 
-  const totalEmissions = metrics.total_emissions || 12450;
-  const highRiskCount = metrics.high_risk_count || 3;
-  const leakCount = metrics.leak_count || 7;
-  const potentialReduction = metrics.potential_reduction || 3150;
-  const reductionPercent = metrics.potential_reduction_percent || 25.3;
-  const annualSavings = metrics.annual_savings || 420000;
-  const capex = metrics.investment_required || 650000;
-  const payback = metrics.payback_years || 1.55;
+  const totalEmissions = metrics.total_emissions || 0;
+  const highRiskCount = metrics.high_risk_count || 0;
+  const leakCount = metrics.leak_count || 0;
+  const potentialReduction = metrics.potential_reduction || 0;
+  const reductionPercent = metrics.potential_reduction_percent || 0;
+  const annualSavings = metrics.annual_savings || 0;
+  const capex = metrics.investment_required || 0;
+  const payback = metrics.payback_years || 0;
+  const intensity = metrics.emissions_intensity || 0;
+  const peakAnomaly = metrics.peak_anomaly_equipment || (highRiskCount > 0 ? 'High Loss Hotspot' : 'Nominal Operations');
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -36,8 +38,10 @@ export function EmissionSummary({ metrics }) {
         </div>
 
         <div className="flex items-center justify-between text-xs mt-3 pt-2.5 border-t border-[#1b2230]">
-          <span className="text-slate-400">Annual: {metrics.total_emissions_annual?.toLocaleString() || '4,544'} tCO₂e</span>
-          <span className="font-mono text-[11px] text-amber-400 font-medium">101 kgCO₂e/t</span>
+          <span className="text-slate-400">Annual: {metrics.total_emissions_annual ? metrics.total_emissions_annual.toLocaleString() : (Math.round(totalEmissions * 365 / 1000)).toLocaleString()} tCO₂e</span>
+          <span className="font-mono text-[11px] text-amber-400 font-medium">
+            {intensity > 0 ? `${intensity} kgCO₂e/unit` : 'Operational'}
+          </span>
         </div>
       </div>
 
@@ -61,9 +65,11 @@ export function EmissionSummary({ metrics }) {
         </div>
 
         <div className="flex items-center justify-between text-xs mt-3 pt-2.5 border-t border-[#1e2332]">
-          <span className="text-slate-400">Peak Anomaly: Compressor 03</span>
-          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold">
-            +45% Bleed
+          <span className="text-slate-400 truncate max-w-[150px]">Peak Anomaly: {peakAnomaly}</span>
+          <span className={`font-mono text-[11px] px-1.5 py-0.5 rounded border font-bold ${
+            highRiskCount > 0 ? 'bg-red-950 text-red-300 border-red-800' : 'bg-emerald-950 text-emerald-300 border-emerald-800'
+          }`}>
+            {highRiskCount > 0 ? 'Action Required' : 'Optimal'}
           </span>
         </div>
       </div>

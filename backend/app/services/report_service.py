@@ -15,28 +15,26 @@ from app.services.benchmark_service import BenchmarkService
 from app.services.circularity_service import CircularityService
 from app.services.trajectory_service import TrajectoryService
 from app.services.audit_service import AuditService
-from app.utils.facility_resolver import resolve_facility_id
 
 
 class ReportService:
     @staticmethod
-    def generate_pdf_report(db: Session, facility_id: Any) -> Dict[str, Any]:
+    def generate_pdf_report(db: Session, facility_id: int) -> Dict[str, Any]:
         """
         Generate a comprehensive 12-section PDF Industrial Carbon Audit Report.
         """
-        fac_id = resolve_facility_id(facility_id, db)
-        facility = FacilityService.get_facility(db, fac_id)
+        facility = FacilityService.get_facility(db, facility_id)
         if not facility:
             raise ValueError(f"Facility {facility_id} not found.")
 
-        summary = EmissionService.calculate_summary(db, fac_id)
-        hotspots = LeakService.get_structural_hotspots(db, fac_id).get("hotspots", [])
-        anomalies = LeakService.get_anomalies(db, fac_id).get("anomalies", [])
-        priority_res = PriorityService.rank_interventions(db, fac_id)
-        benchmark = BenchmarkService.get_benchmark(db, fac_id)
-        circularity = CircularityService.calculate_circularity_score(db, fac_id)
-        trajectory = TrajectoryService.calculate_5year_trajectory(db, fac_id)
-        audit = AuditService.generate_audit_summary(db, fac_id)
+        summary = EmissionService.calculate_summary(db, facility_id)
+        hotspots = LeakService.get_structural_hotspots(db, facility_id).get("hotspots", [])
+        anomalies = LeakService.get_anomalies(db, facility_id).get("anomalies", [])
+        priority_res = PriorityService.rank_interventions(db, facility_id)
+        benchmark = BenchmarkService.get_benchmark(db, facility_id)
+        circularity = CircularityService.calculate_circularity_score(db, facility_id)
+        trajectory = TrajectoryService.calculate_5year_trajectory(db, facility_id)
+        audit = AuditService.generate_audit_summary(db, facility_id)
 
         timestamp_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"CircuLeak_Audit_Facility_{facility_id}_{timestamp_str}.pdf"
@@ -222,9 +220,12 @@ class ReportService:
 
         # 7. Circularity Score & 5-Year Trajectory
         elements.append(Paragraph("7. Circularity Score & 5-Year Decarbonization Trajectory", heading_style))
+        circ_score = circularity.get("overall_score", 0.0)
+        circ_grade = circularity.get("grade", "N/A")
+        circ_proj = circularity.get("projected_score", circularity.get("projected_score_after_interventions", circ_score))
         circ_text = (
-            f"<b>Circularity Rating:</b> Current Score = <b>{circularity['overall_score']}/100</b> ({circularity['grade']}). "
-            f"Projected Score post-interventions = <b>{circularity['projected_score_after_interventions']}/100</b>."
+            f"<b>Circularity Rating:</b> Current Score = <b>{circ_score}/100</b> ({circ_grade}). "
+            f"Projected Score post-interventions = <b>{circ_proj}/100</b>."
         )
         elements.append(Paragraph(circ_text, body_style))
         elements.append(Spacer(1, 6))
@@ -265,10 +266,7 @@ class ReportService:
             "report_title": "CircuLeak Industrial Carbon Audit",
             "file_name": filename,
             "download_url": f"/api/report/download/{filename}",
-            "report_url": f"/api/report/download/{filename}",
             "file_size_bytes": file_size,
-            "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "message": "Comprehensive Industrial Decarbonization Audit Report generated successfully.",
             "sections_included": [
                 "1. Executive Summary",
                 "2. Facility Profile",

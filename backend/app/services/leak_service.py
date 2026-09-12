@@ -1,14 +1,18 @@
+import datetime
+import uuid
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 try:
     from app.models.leak import Leak
     from app.models.facility import Facility
+    from app.models.analysis_run import AnalysisRun
     from app.services.emission_service import EmissionService
     from app.ml.anomaly_detector import AnomalyDetector
     from app.data.recommendations import DEFAULT_RECOMMENDATIONS
 except (ImportError, ModuleNotFoundError):
     from ..models.leak import Leak
     from ..models.facility import Facility
+    from ..models.analysis_run import AnalysisRun
     from .emission_service import EmissionService
     from ..ml.anomaly_detector import AnomalyDetector
     from ..data.recommendations import DEFAULT_RECOMMENDATIONS
@@ -45,41 +49,23 @@ class LeakService:
                 "leak_category": "Major Structural Emission Node" if cumulative_pct <= 80.0 else "Secondary Emission Node"
             })
 
-        # Build hotspots_flow grouped by process for frontend visualizer
-        hotspots_flow = []
-        for proc_name, p_group in df.groupby("process"):
-            p_tot = float(p_group["calculated_emissions_kg"].sum())
-            eq_items = []
-            for eq_name, eq_group in p_group.groupby("equipment"):
-                eq_tot = float(eq_group["calculated_emissions_kg"].sum())
-                share_pct = round((eq_tot / p_tot) * 100, 1) if p_tot > 0 else 0.0
-                flag = "Critical Leak" if share_pct >= 50 else ("Moderate Waste" if share_pct >= 25 else "Nominal")
-                eq_items.append({
-                    "name": str(eq_name),
-                    "emissions": round(eq_tot, 1),
-                    "share": share_pct,
-                    "flag": flag
-                })
-            eq_items.sort(key=lambda x: x["emissions"], reverse=True)
-            hotspots_flow.append({
-                "process": str(proc_name),
-                "total_emissions": round(p_tot, 1),
-                "equipment_breakdown": eq_items
-            })
-        hotspots_flow.sort(key=lambda x: x["total_emissions"], reverse=True)
-
         return {
             "facility_id": facility_id,
             "total_emissions_kg": round(total_emissions, 2),
-            "hotspots": hotspots,
-            "hotspots_flow": hotspots_flow
+            "hotspots": hotspots
         }
 
     @staticmethod
-    def detect_and_sync_anomalies(db: Session, facility_id: int) -> List[Dict[str, Any]]:
+    def detect_and_sync_anomalies(
+        db: Session,
+        facility_id: int,
+        upload_id: Optional[int] = None,
+        analysis_run_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Run the ML behavioral anomaly detector on facility time-series,
-        persist detected leaks in the database, and return formatted anomalies.
+        record ML model execution in analysis_runs, persist detected leaks
+        with full upload and run lineage, and return formatted anomalies.
         """
         facility = db.query(Facility).filter(Facility.id == facility_id).first()
         if not facility:
@@ -89,41 +75,74 @@ class LeakService:
         if df.empty:
             return []
 
-        detector = AnomalyDetector()
-        detected_list = detector.detect_anomalies(df, operating_hours=facility.operating_hours or 16.0)
+        run_id = analysis_run_id or f"RUN-ANOMALY-{uuid.uuid4().hex[:8].upper()}"
+        start_time = datetime.datetime.now(datetime.timezone.utc)
 
-        # Sync with database
-        db.query(Leak).filter(Leak.facility_id == facility_id, Leak.leak_type == "behavioral").delete()
+        ml_run = AnalysisRun(
+            id=run_id,
+            facility_id=facility_id,
+            upload_id=upload_id,
+            analysis_type="anomaly_detection",
+            model_name="IsolationForest",
+            model_version="1.0.0",
+            parameters={"contamination": 0.08, "n_estimators": 100, "random_state": 42},
+            feature_set=["electricity_kwh", "fuel_quantity", "hour", "specific_energy_consumption"],
+            input_row_count=len(df),
+            started_at=start_time,
+            status="running"
+        )
+        db.add(ml_run)
+        db.flush()
 
-        saved_anomalies: List[Dict[str, Any]] = []
-        for a in detected_list:
-            leak_obj = Leak(
-                facility_id=facility_id,
-                leak_type="behavioral",
-                equipment=a["equipment"],
-                process=a["process"],
-                risk_score=a["risk_score"],
-                baseline_consumption=a["baseline_consumption"],
-                observed_consumption=a["observed_consumption"],
-                deviation_percent=a["deviation_percent"],
-                abnormal_period=a["abnormal_period"],
-                production_status=a["production_status"],
-                reason=a["reason"],
-                potential_causes=a["potential_causes"]
-            )
-            db.add(leak_obj)
-            db.flush()
+        try:
+            detector = AnomalyDetector()
+            detected_list = detector.detect_anomalies(df, operating_hours=facility.operating_hours or 16.0)
 
-            a_copy = dict(a)
-            a_copy["leak_id"] = leak_obj.id
-            saved_anomalies.append(a_copy)
+            # Sync with database
+            db.query(Leak).filter(Leak.facility_id == facility_id, Leak.leak_type == "behavioral").delete()
 
-        db.commit()
-        return saved_anomalies
+            saved_anomalies: List[Dict[str, Any]] = []
+            for a in detected_list:
+                leak_obj = Leak(
+                    facility_id=facility_id,
+                    upload_id=upload_id,
+                    analysis_run_id=run_id,
+                    leak_type="behavioral",
+                    equipment=a["equipment"],
+                    process=a["process"],
+                    risk_score=a["risk_score"],
+                    baseline_consumption=a["baseline_consumption"],
+                    observed_consumption=a["observed_consumption"],
+                    deviation_percent=a["deviation_percent"],
+                    abnormal_period=a["abnormal_period"],
+                    production_status=a["production_status"],
+                    reason=a["reason"],
+                    potential_causes=a["potential_causes"]
+                )
+                db.add(leak_obj)
+                db.flush()
+
+                a_copy = dict(a)
+                a_copy["leak_id"] = leak_obj.id
+                a_copy["upload_id"] = upload_id
+                a_copy["analysis_run_id"] = run_id
+                saved_anomalies.append(a_copy)
+
+            ml_run.status = "completed"
+            ml_run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.commit()
+            return saved_anomalies
+
+        except Exception as e:
+            ml_run.status = "failed"
+            ml_run.error_message = str(e)
+            ml_run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.commit()
+            raise e
 
     @staticmethod
     def get_anomalies(db: Session, facility_id: int) -> Dict[str, Any]:
-        """Fetch ML-detected behavioral anomalies for facility."""
+        """Retrieve detected behavioral anomalies for a facility."""
         existing_leaks = db.query(Leak).filter(
             Leak.facility_id == facility_id,
             Leak.leak_type == "behavioral"
@@ -150,38 +169,10 @@ class LeakService:
                 for l in existing_leaks
             ]
 
-        leaks_list = []
-        for idx, a in enumerate(anomalies, start=1):
-            r_score = float(a.get("risk_score", 75))
-            r_level = "Critical" if r_score >= 80 else ("High" if r_score >= 60 else "Medium")
-            item = {
-                "id": f"LEAK-{idx:02d}",
-                "leak_id": a.get("leak_id", idx),
-                "equipment": a["equipment"],
-                "process": a["process"],
-                "location": "Utility Bay B" if "compressor" in a["equipment"].lower() else "Primary Process Bay",
-                "risk_score": r_score,
-                "risk_level": r_level,
-                "emission_contribution": a.get("emission_contribution_kg") or round(a["observed_consumption"] * 45, 1),
-                "baseline_consumption": a["baseline_consumption"],
-                "observed_consumption": a["observed_consumption"],
-                "consumption_unit": "kWh/day",
-                "deviation_percent": a["deviation_percent"],
-                "abnormal_period": a["abnormal_period"],
-                "production_status": a["production_status"],
-                "reason": a["reason"],
-                "potential_causes": a.get("potential_causes", [])
-            }
-            leaks_list.append(item)
-
         return {
             "facility_id": facility_id,
             "anomalies_detected_count": len(anomalies),
-            "total_leaks": len(leaks_list),
-            "high_risk_count": sum(1 for l in leaks_list if l["risk_score"] >= 70),
-            "aggregate_excess_emissions": sum(l["emission_contribution"] for l in leaks_list),
-            "anomalies": anomalies,
-            "leaks": leaks_list
+            "anomalies": anomalies
         }
 
     @staticmethod
@@ -189,10 +180,7 @@ class LeakService:
         """Fetch comprehensive explainable leak details and matched circular interventions."""
         leak = db.query(Leak).filter(Leak.id == leak_id).first()
         if not leak:
-            # Fallback to first leak in database if specific ID isn't found
-            leak = db.query(Leak).first()
-            if not leak:
-                return None
+            return None
 
         # Find matching interventions from knowledge base
         matched_interventions = []
@@ -214,23 +202,6 @@ class LeakService:
                     "feasibility": rec["feasibility"]
                 })
 
-        r_score = float(leak.risk_score or 75)
-        r_level = "Critical" if r_score >= 80 else ("High" if r_score >= 60 else "Medium")
-        hourly_data = [
-            {"time": "00:00", "observed": round(leak.observed_consumption, 1), "baseline": round(leak.baseline_consumption, 1), "status": "Inactive"},
-            {"time": "02:00", "observed": round(leak.observed_consumption * 1.02, 1), "baseline": round(leak.baseline_consumption, 1), "status": "Inactive"},
-            {"time": "04:00", "observed": round(leak.observed_consumption * 0.98, 1), "baseline": round(leak.baseline_consumption, 1), "status": "Inactive"},
-            {"time": "06:00", "observed": round(leak.baseline_consumption * 1.8, 1), "baseline": round(leak.baseline_consumption * 1.8, 1), "status": "Active Shift 1"},
-            {"time": "08:00", "observed": round(leak.baseline_consumption * 2.0, 1), "baseline": round(leak.baseline_consumption * 2.0, 1), "status": "Active Shift 1"},
-            {"time": "10:00", "observed": round(leak.baseline_consumption * 2.05, 1), "baseline": round(leak.baseline_consumption * 2.0, 1), "status": "Active Shift 1"},
-            {"time": "12:00", "observed": round(leak.baseline_consumption * 1.95, 1), "baseline": round(leak.baseline_consumption * 1.95, 1), "status": "Active Shift 1"},
-            {"time": "14:00", "observed": round(leak.baseline_consumption * 2.0, 1), "baseline": round(leak.baseline_consumption * 2.0, 1), "status": "Active Shift 2"},
-            {"time": "16:00", "observed": round(leak.baseline_consumption * 2.1, 1), "baseline": round(leak.baseline_consumption * 2.0, 1), "status": "Active Shift 2"},
-            {"time": "18:00", "observed": round(leak.baseline_consumption * 1.9, 1), "baseline": round(leak.baseline_consumption * 1.9, 1), "status": "Active Shift 2"},
-            {"time": "20:00", "observed": round(leak.baseline_consumption * 1.85, 1), "baseline": round(leak.baseline_consumption * 1.85, 1), "status": "Active Shift 2"},
-            {"time": "22:00", "observed": round(leak.observed_consumption, 1), "baseline": round(leak.baseline_consumption, 1), "status": "Inactive"}
-        ]
-
         return {
             "id": leak.id,
             "facility_id": leak.facility_id,
@@ -238,19 +209,14 @@ class LeakService:
             "equipment": leak.equipment,
             "process": leak.process,
             "risk_score": leak.risk_score,
-            "risk_level": r_level,
-            "location": "Utility Bay B" if "compressor" in leak.equipment.lower() else "Melt Shop Floor",
-            "emission_contribution_kg": leak.emission_contribution_kg or round(leak.observed_consumption * 45, 1),
-            "emission_contribution": leak.emission_contribution_kg or round(leak.observed_consumption * 45, 1),
+            "emission_contribution_kg": leak.emission_contribution_kg,
             "baseline_consumption": leak.baseline_consumption,
             "observed_consumption": leak.observed_consumption,
-            "consumption_unit": "kWh/day",
             "deviation_percent": leak.deviation_percent,
             "abnormal_period": leak.abnormal_period,
             "production_status": leak.production_status,
             "reason": leak.reason,
             "potential_causes": leak.potential_causes or [],
-            "hourly_observed_data": hourly_data,
             "recommended_interventions": matched_interventions,
             "detected_at": leak.detected_at
         }
