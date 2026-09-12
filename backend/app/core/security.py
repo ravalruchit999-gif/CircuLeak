@@ -12,11 +12,11 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.models.user import User
 
-JWT_SECRET = getattr(settings, "JWT_SECRET", "circuleak-super-secret-jwt-key-2026-industrial-netzero-long-key")
+JWT_SECRET = settings.JWT_SECRET
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login", auto_error=True)
 
 
 def hash_password(password: str) -> str:
@@ -52,10 +52,14 @@ def decode_access_token(token: str) -> Optional[dict]:
         return None
 
 
-def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[User]:
-    """Dependency to retrieve authenticated user from Bearer token."""
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """Dependency to retrieve authenticated user from Bearer token. Raises 401 if missing or invalid."""
     if not token:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication token is required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     payload = decode_access_token(token)
     if not payload:
         raise HTTPException(
@@ -69,13 +73,13 @@ def get_current_user(token: Optional[str] = Depends(oauth2_scheme), db: Session 
     user = db.query(User).filter(User.id == int(user_id)).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    if hasattr(user, "is_active") and not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user account")
     return user
 
 
-def require_admin_user(current_user: Optional[User] = Depends(get_current_user)) -> User:
+def require_admin_user(current_user: User = Depends(get_current_user)) -> User:
     """Ensure current user is authenticated with admin privileges."""
-    if not current_user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required")
     return current_user
@@ -83,7 +87,7 @@ def require_admin_user(current_user: Optional[User] = Depends(get_current_user))
 
 def get_authorized_facility_id(
     facility_id: Optional[int] = None,
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ) -> int:
     """
     Enforce strict multi-tenancy isolation:
@@ -91,19 +95,23 @@ def get_authorized_facility_id(
       Attempting to access another facility's ID triggers HTTP 403 Forbidden.
     - Admins may inspect specific facilities across the tenancy.
     """
-    if current_user:
-        if current_user.role == "admin":
-            return facility_id or current_user.facility_id or 1
-        user_fac = current_user.facility_id
-        if not user_fac:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User account is not bound to any facility.")
-        if facility_id is not None and int(facility_id) != int(user_fac):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized: You cannot access or modify telemetry belonging to another facility."
-            )
-        return user_fac
-    return facility_id or 1
+    if current_user.role == "admin":
+        if facility_id is not None:
+            return int(facility_id)
+        if current_user.facility_id:
+            return int(current_user.facility_id)
+        return 1
+    
+    user_fac = current_user.facility_id
+    if not user_fac:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User account is not bound to any facility.")
+    if facility_id is not None and int(facility_id) != int(user_fac):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized: You cannot access or modify telemetry belonging to another facility."
+        )
+    return int(user_fac)
+
 
 
 def sanitize_filename(filename: str) -> str:

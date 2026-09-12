@@ -7,6 +7,7 @@ from .simulation import Simulation
 from .benchmark import Benchmark
 from .user import User
 from .data_upload import DataUpload
+from .analysis_run import AnalysisRun
 from .audit_log import AuditLog
 from .analysis_rule import AnalysisRule
 
@@ -20,6 +21,7 @@ __all__ = [
     "Benchmark",
     "User",
     "DataUpload",
+    "AnalysisRun",
     "AuditLog",
     "AnalysisRule",
 ]

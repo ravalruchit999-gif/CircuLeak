@@ -67,6 +67,18 @@ def test_full_pipeline_flow(client):
     Test full end-to-end pipeline:
     Create Facility -> Upload CSV -> Emissions -> Leaks -> Simulation -> Audit Summary -> PDF Report
     """
+    # 0. Register & Authenticate User
+    user_reg = client.post("/api/auth/register", json={
+        "full_name": "Pipeline Tester",
+        "email": "pipeline_tester@factory.com",
+        "password": "Password123!",
+        "company_name": "Gujarat Synthetics Ltd.",
+        "role": "facility_manager"
+    })
+    assert user_reg.status_code == 200
+    token = user_reg.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     # 1. Create Facility
     fac_payload = {
         "business_name": "Gujarat Synthetics Ltd.",
@@ -78,7 +90,7 @@ def test_full_pipeline_flow(client):
         "operating_hours": 16.0,
         "energy_sources": ["grid_electricity", "natural_gas"]
     }
-    fac_resp = client.post("/api/facility", json=fac_payload)
+    fac_resp = client.post("/api/facility", json=fac_payload, headers=headers)
     assert fac_resp.status_code == 201
     fac_data = fac_resp.json()
     assert fac_data["success"] is True
@@ -92,7 +104,8 @@ def test_full_pipeline_flow(client):
         upload_resp = client.post(
             "/api/upload/csv",
             data={"facility_id": facility_id},
-            files={"file": ("demo.csv", f, "text/csv")}
+            files={"file": ("demo.csv", f, "text/csv")},
+            headers=headers
         )
     assert upload_resp.status_code == 200
     upload_data = upload_resp.json()
@@ -100,7 +113,7 @@ def test_full_pipeline_flow(client):
     assert upload_data["data"]["rows_valid"] > 100
 
     # 3. Verify Emissions Summary
-    emiss_resp = client.get(f"/api/emissions/summary/{facility_id}")
+    emiss_resp = client.get(f"/api/emissions/summary/{facility_id}", headers=headers)
     assert emiss_resp.status_code == 200
     emiss_data = emiss_resp.json()
     assert emiss_data["data"]["total_emissions"] > 0
@@ -108,18 +121,18 @@ def test_full_pipeline_flow(client):
     assert len(emiss_data["data"]["by_equipment"]) > 0
 
     # 4. Verify Sankey Graph
-    sankey_resp = client.get(f"/api/emissions/sankey/{facility_id}")
+    sankey_resp = client.get(f"/api/emissions/sankey/{facility_id}", headers=headers)
     assert sankey_resp.status_code == 200
     sankey_data = sankey_resp.json()
     assert len(sankey_data["data"]["nodes"]) > 0
     assert len(sankey_data["data"]["links"]) > 0
 
     # 5. Verify Leaks (Hotspots and Anomalies)
-    hotspots_resp = client.get(f"/api/leaks/hotspots/{facility_id}")
+    hotspots_resp = client.get(f"/api/leaks/hotspots/{facility_id}", headers=headers)
     assert hotspots_resp.status_code == 200
     assert len(hotspots_resp.json()["data"]["hotspots"]) > 0
 
-    anomalies_resp = client.get(f"/api/leaks/anomalies/{facility_id}")
+    anomalies_resp = client.get(f"/api/leaks/anomalies/{facility_id}", headers=headers)
     assert anomalies_resp.status_code == 200
     anomalies_list = anomalies_resp.json()["data"]["anomalies"]
     assert len(anomalies_list) > 0
@@ -128,11 +141,11 @@ def test_full_pipeline_flow(client):
     assert len(anomalies_list[0]["reason"]) > 10
 
     # 6. Verify Recommendations & Priorities
-    recs_resp = client.get(f"/api/recommendations/{facility_id}")
+    recs_resp = client.get(f"/api/recommendations/{facility_id}", headers=headers)
     assert recs_resp.status_code == 200
     assert len(recs_resp.json()["data"]) > 0
 
-    priority_resp = client.get(f"/api/interventions/priority/{facility_id}")
+    priority_resp = client.get(f"/api/interventions/priority/{facility_id}", headers=headers)
     assert priority_resp.status_code == 200
     assert len(priority_resp.json()["data"]["ranked_interventions"]) > 0
 
@@ -141,7 +154,7 @@ def test_full_pipeline_flow(client):
         "facility_id": facility_id,
         "intervention_ids": ["whr_boiler_flue", "air_leak_audit_repair"]
     }
-    sim_resp = client.post("/api/simulation/what-if", json=sim_payload)
+    sim_resp = client.post("/api/simulation/what-if", json=sim_payload, headers=headers)
     assert sim_resp.status_code == 200
     sim_data = sim_resp.json()
     assert sim_data["data"]["total_reduction"] > 0
@@ -149,26 +162,26 @@ def test_full_pipeline_flow(client):
     assert sim_data["data"]["annual_savings"] > 0
 
     # 8. Scenario Comparison
-    scenarios_resp = client.post("/api/simulation/scenarios", json={"facility_id": facility_id})
+    scenarios_resp = client.post("/api/simulation/scenarios", json={"facility_id": facility_id}, headers=headers)
     assert scenarios_resp.status_code == 200
     assert len(scenarios_resp.json()["data"]["scenarios"]) == 3
 
     # 9. 5-Year Trajectory
-    traj_resp = client.get(f"/api/trajectory/{facility_id}")
+    traj_resp = client.get(f"/api/trajectory/{facility_id}", headers=headers)
     assert traj_resp.status_code == 200
     assert len(traj_resp.json()["data"]["trajectory"]) == 5
 
     # 10. Benchmarking & Circularity Score
-    bench_resp = client.get(f"/api/benchmark/{facility_id}")
+    bench_resp = client.get(f"/api/benchmark/{facility_id}", headers=headers)
     assert bench_resp.status_code == 200
     assert bench_resp.json()["data"]["benchmark_average"] > 0
 
-    circ_resp = client.get(f"/api/circularity/{facility_id}")
+    circ_resp = client.get(f"/api/circularity/{facility_id}", headers=headers)
     assert circ_resp.status_code == 200
     assert 0 <= circ_resp.json()["data"]["overall_score"] <= 100
 
     # 11. AI Audit Summary (Executive Audit Summary)
-    audit_resp = client.post("/api/audit/summary", json={"facility_id": facility_id})
+    audit_resp = client.post("/api/audit/summary", json={"facility_id": facility_id}, headers=headers)
     assert audit_resp.status_code == 200
     audit_data = audit_resp.json()["data"]
     assert audit_data["report_title"] == "Executive Audit Summary"
@@ -177,13 +190,14 @@ def test_full_pipeline_flow(client):
     assert "structured_audit_data" in audit_data
 
     # 12. PDF Report Generation
-    report_resp = client.post("/api/report/generate", json={"facility_id": facility_id})
+    report_resp = client.post("/api/report/generate", json={"facility_id": facility_id}, headers=headers)
     assert report_resp.status_code == 200
     report_data = report_resp.json()["data"]
     assert report_data["file_size_bytes"] > 1000
     assert len(report_data["sections_included"]) == 12
 
     # Download the report
-    download_resp = client.get(report_data["download_url"])
+    download_resp = client.get(report_data["download_url"], headers=headers)
     assert download_resp.status_code == 200
     assert download_resp.headers["content-type"] == "application/pdf"
+

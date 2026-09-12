@@ -220,9 +220,12 @@ class ReportService:
 
         # 7. Circularity Score & 5-Year Trajectory
         elements.append(Paragraph("7. Circularity Score & 5-Year Decarbonization Trajectory", heading_style))
+        circ_score = circularity.get("overall_score", 0.0)
+        circ_grade = circularity.get("grade", "N/A")
+        circ_proj = circularity.get("projected_score", circularity.get("projected_score_after_interventions", circ_score))
         circ_text = (
-            f"<b>Circularity Rating:</b> Current Score = <b>{circularity['overall_score']}/100</b> ({circularity['grade']}). "
-            f"Projected Score post-interventions = <b>{circularity['projected_score_after_interventions']}/100</b>."
+            f"<b>Circularity Rating:</b> Current Score = <b>{circ_score}/100</b> ({circ_grade}). "
+            f"Projected Score post-interventions = <b>{circ_proj}/100</b>."
         )
         elements.append(Paragraph(circ_text, body_style))
         elements.append(Spacer(1, 6))

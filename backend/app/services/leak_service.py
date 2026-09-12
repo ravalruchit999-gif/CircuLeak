@@ -1,14 +1,18 @@
+import datetime
+import uuid
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 try:
     from app.models.leak import Leak
     from app.models.facility import Facility
+    from app.models.analysis_run import AnalysisRun
     from app.services.emission_service import EmissionService
     from app.ml.anomaly_detector import AnomalyDetector
     from app.data.recommendations import DEFAULT_RECOMMENDATIONS
 except (ImportError, ModuleNotFoundError):
     from ..models.leak import Leak
     from ..models.facility import Facility
+    from ..models.analysis_run import AnalysisRun
     from .emission_service import EmissionService
     from ..ml.anomaly_detector import AnomalyDetector
     from ..data.recommendations import DEFAULT_RECOMMENDATIONS
@@ -52,10 +56,16 @@ class LeakService:
         }
 
     @staticmethod
-    def detect_and_sync_anomalies(db: Session, facility_id: int) -> List[Dict[str, Any]]:
+    def detect_and_sync_anomalies(
+        db: Session,
+        facility_id: int,
+        upload_id: Optional[int] = None,
+        analysis_run_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Run the ML behavioral anomaly detector on facility time-series,
-        persist detected leaks in the database, and return formatted anomalies.
+        record ML model execution in analysis_runs, persist detected leaks
+        with full upload and run lineage, and return formatted anomalies.
         """
         facility = db.query(Facility).filter(Facility.id == facility_id).first()
         if not facility:
@@ -65,37 +75,70 @@ class LeakService:
         if df.empty:
             return []
 
-        detector = AnomalyDetector()
-        detected_list = detector.detect_anomalies(df, operating_hours=facility.operating_hours or 16.0)
+        run_id = analysis_run_id or f"RUN-ANOMALY-{uuid.uuid4().hex[:8].upper()}"
+        start_time = datetime.datetime.now(datetime.timezone.utc)
 
-        # Sync with database
-        db.query(Leak).filter(Leak.facility_id == facility_id, Leak.leak_type == "behavioral").delete()
+        ml_run = AnalysisRun(
+            id=run_id,
+            facility_id=facility_id,
+            upload_id=upload_id,
+            analysis_type="anomaly_detection",
+            model_name="IsolationForest",
+            model_version="1.0.0",
+            parameters={"contamination": 0.08, "n_estimators": 100, "random_state": 42},
+            feature_set=["electricity_kwh", "fuel_quantity", "hour", "specific_energy_consumption"],
+            input_row_count=len(df),
+            started_at=start_time,
+            status="running"
+        )
+        db.add(ml_run)
+        db.flush()
 
-        saved_anomalies: List[Dict[str, Any]] = []
-        for a in detected_list:
-            leak_obj = Leak(
-                facility_id=facility_id,
-                leak_type="behavioral",
-                equipment=a["equipment"],
-                process=a["process"],
-                risk_score=a["risk_score"],
-                baseline_consumption=a["baseline_consumption"],
-                observed_consumption=a["observed_consumption"],
-                deviation_percent=a["deviation_percent"],
-                abnormal_period=a["abnormal_period"],
-                production_status=a["production_status"],
-                reason=a["reason"],
-                potential_causes=a["potential_causes"]
-            )
-            db.add(leak_obj)
-            db.flush()
+        try:
+            detector = AnomalyDetector()
+            detected_list = detector.detect_anomalies(df, operating_hours=facility.operating_hours or 16.0)
 
-            a_copy = dict(a)
-            a_copy["leak_id"] = leak_obj.id
-            saved_anomalies.append(a_copy)
+            # Sync with database
+            db.query(Leak).filter(Leak.facility_id == facility_id, Leak.leak_type == "behavioral").delete()
 
-        db.commit()
-        return saved_anomalies
+            saved_anomalies: List[Dict[str, Any]] = []
+            for a in detected_list:
+                leak_obj = Leak(
+                    facility_id=facility_id,
+                    upload_id=upload_id,
+                    analysis_run_id=run_id,
+                    leak_type="behavioral",
+                    equipment=a["equipment"],
+                    process=a["process"],
+                    risk_score=a["risk_score"],
+                    baseline_consumption=a["baseline_consumption"],
+                    observed_consumption=a["observed_consumption"],
+                    deviation_percent=a["deviation_percent"],
+                    abnormal_period=a["abnormal_period"],
+                    production_status=a["production_status"],
+                    reason=a["reason"],
+                    potential_causes=a["potential_causes"]
+                )
+                db.add(leak_obj)
+                db.flush()
+
+                a_copy = dict(a)
+                a_copy["leak_id"] = leak_obj.id
+                a_copy["upload_id"] = upload_id
+                a_copy["analysis_run_id"] = run_id
+                saved_anomalies.append(a_copy)
+
+            ml_run.status = "completed"
+            ml_run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.commit()
+            return saved_anomalies
+
+        except Exception as e:
+            ml_run.status = "failed"
+            ml_run.error_message = str(e)
+            ml_run.completed_at = datetime.datetime.now(datetime.timezone.utc)
+            db.commit()
+            raise e
 
     @staticmethod
     def get_anomalies(db: Session, facility_id: int) -> Dict[str, Any]:

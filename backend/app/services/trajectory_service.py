@@ -117,5 +117,12 @@ class TrajectoryService:
             "total_cumulative_co2_avoided_kg": round(cumulative_co2, 2),
             "total_cumulative_savings_inr": round(cumulative_savings, 2),
             "summary": summary_dict,
-            "roadmap_milestones": milestones
+            "roadmap_milestones": milestones,
+            "assumptions": {
+                "annual_growth_rate": growth_rate,
+                "adoption_curve": adoption_curve,
+                "projection_methodology": "Parametric linear phased adoption applied to prioritized circular interventions",
+                "source": "CircuLeak Decarbonization Trajectory Engine"
+            }
         }
+

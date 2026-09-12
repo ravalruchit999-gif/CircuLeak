@@ -3,10 +3,25 @@ from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from app.models.process_data import ProcessData
 from app.models.facility import Facility
-from app.data.emission_factors import EMISSION_FACTORS
+from app.models.emission_factor import EmissionFactor
 
 
 class EmissionService:
+    @staticmethod
+    def get_grid_electricity_factor(db: Session) -> float:
+        """Retrieve active grid electricity factor from database (fallback 0.716)."""
+        ef = db.query(EmissionFactor).filter(
+            EmissionFactor.source_name == "grid_electricity",
+            EmissionFactor.is_active == True
+        ).first()
+        return ef.factor_value if ef else 0.716
+
+    @staticmethod
+    def get_active_factors_lookup(db: Session) -> Dict[str, EmissionFactor]:
+        """Retrieve all active emission factors from database."""
+        factors = db.query(EmissionFactor).filter(EmissionFactor.is_active == True).all()
+        return {f.source_name.lower(): f for f in factors}
+
     @staticmethod
     def get_emissions_dataframe(db: Session, facility_id: int) -> pd.DataFrame:
         """Fetch all process data for a facility as a pandas DataFrame."""
@@ -65,7 +80,7 @@ class EmissionService:
 
         # 1. By Source
         # Split electricity emissions vs fuel emissions
-        elec_factor = EMISSION_FACTORS["grid_electricity"]["factor"]
+        elec_factor = EmissionService.get_grid_electricity_factor(db)
         grid_emiss = float((df["electricity_kwh"] * elec_factor).sum())
 
         source_map: Dict[str, float] = {}
@@ -208,7 +223,7 @@ class EmissionService:
         if df.empty:
             return {"facility_id": facility_id, "nodes": [], "links": []}
 
-        elec_factor = EMISSION_FACTORS["grid_electricity"]["factor"]
+        elec_factor = EmissionService.get_grid_electricity_factor(db)
         nodes_set = set()
         links: List[Dict[str, Any]] = []
 

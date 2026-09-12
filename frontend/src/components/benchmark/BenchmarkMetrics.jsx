@@ -6,7 +6,10 @@ export function BenchmarkMetrics({ industryBenchmark, peerCluster }) {
   const facilityIntensity = Number(industryBenchmark?.facility_intensity || 0);
   const sectorAverage = Number(industryBenchmark?.benchmark_average || 0);
   const gap = Number(industryBenchmark?.difference_percent || 0);
-  const clusterCount = Number(peerCluster?.similar_facility_count || 0);
+  const isInsufficient = peerCluster?.has_peer_data === false || peerCluster?.status === "insufficient_data";
+  const clusterCount = Number(peerCluster?.peer_cohort_size || peerCluster?.similar_facility_count || 0);
+  const clusterDisplay = isInsufficient ? 'Pending' : clusterCount;
+  const clusterSubtext = isInsufficient ? 'Requires >= 10 sector peers' : 'Classified by operational profile';
   const unit = industryBenchmark?.unit || 'kgCO₂e / unit';
   const targetIntensity = facilityIntensity > 0 ? (facilityIntensity * 0.75).toFixed(1) : '0.0';
   const sectorName = industryBenchmark?.sector || 'Manufacturing Sector';
@@ -31,12 +34,13 @@ export function BenchmarkMetrics({ industryBenchmark, peerCluster }) {
         icon={TrendingUp}
       />
       <MetricCard
-        title="Peer Cluster Size"
-        value={clusterCount}
-        unit="Similar Facilities"
-        subtext="Classified by operational profile"
+        title="Peer Cluster Cohort"
+        value={clusterDisplay}
+        unit={isInsufficient ? "Defensibility Guard" : "Similar Facilities"}
+        subtext={clusterSubtext}
         icon={Users}
       />
+
       <MetricCard
         title="Target After Interventions"
         value={targetIntensity}

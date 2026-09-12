@@ -21,9 +21,17 @@ class TrajectoryResponse(BaseModel):
     has_data: bool = False
     start_year: int
     end_year: int
+    baseline_emissions: Optional[float] = 0.0
+    target_emissions: Optional[float] = 0.0
+    total_reduction_potential: Optional[float] = 0.0
+    reduction_percentage: Optional[float] = 0.0
+    cumulative_co2_avoided: Optional[float] = 0.0
+    cumulative_financial_savings: Optional[float] = 0.0
     trajectory: List[TrajectoryYearItem] = []
     yearly_projection: List[Dict[str, Any]] = []
     total_cumulative_co2_avoided_kg: float = 0.0
     total_cumulative_savings_inr: float = 0.0
     summary: Dict[str, Any] = {}
     roadmap_milestones: List[Dict[str, Any]] = []
+    assumptions: Optional[Dict[str, Any]] = None
+

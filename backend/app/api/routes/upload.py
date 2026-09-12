@@ -12,9 +12,9 @@ from app.core.security import (
     get_authorized_facility_id,
     sanitize_filename
 )
-from app.models.user import User
 from app.schemas.upload import UploadSummaryResponse, InspectResponse
 from app.schemas.common import APIResponse
+from app.schemas.telemetry_contract import TelemetryContractValidationError
 from app.services.csv_service import CSVService
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
@@ -155,7 +155,7 @@ async def download_telemetry_template(
 @router.post("/inspect", response_model=APIResponse[InspectResponse])
 async def inspect_industrial_dataset(
     file: UploadFile = File(..., description="Industrial telemetry CSV or XLSX file"),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Inspect spreadsheet headers, detect column mapping matches, and return preview rows.
@@ -185,7 +185,7 @@ async def upload_industrial_dataset(
     facility_id: Optional[int] = Form(None, description="Target facility ID"),
     mapping: Optional[str] = Form(None, description="JSON string with custom column mappings"),
     file: UploadFile = File(..., description="Industrial time-series CSV or XLSX file"),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -216,10 +216,19 @@ async def upload_industrial_dataset(
             facility_id=target_facility_id,
             file_content=content,
             filename=filename,
-            user_id=current_user.id if current_user else None,
+            user_id=current_user.id,
             custom_mapping=custom_mapping
         )
         return APIResponse(success=True, data=UploadSummaryResponse(**summary))
+    except TelemetryContractValidationError as tve:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": tve.message,
+                "missing_fields": tve.missing_fields,
+                "details": tve.details
+            }
+        )
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
     except Exception as e:

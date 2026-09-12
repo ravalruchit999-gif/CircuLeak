@@ -17,6 +17,81 @@ def seed_database():
     db = SessionLocal()
 
     try:
+        # 0. Seed official database emission factors with provenance
+        from app.models.emission_factor import EmissionFactor
+        import datetime
+
+        official_factors = [
+            {
+                "source_name": "grid_electricity",
+                "factor_value": 0.716,
+                "unit": "kgCO2e/kWh",
+                "reference": "India CEA CO2 Baseline Database v19 (2024)",
+                "version": "v19-2024",
+                "scope": "Scope 2",
+                "effective_from": datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            },
+            {
+                "source_name": "coal",
+                "factor_value": 2.420,
+                "unit": "kgCO2e/kg",
+                "reference": "IPCC 2006 / BEE India Industrial Energy Audit Guidelines",
+                "version": "IPCC-2006-R2023",
+                "scope": "Scope 1",
+                "effective_from": datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            },
+            {
+                "source_name": "diesel",
+                "factor_value": 2.680,
+                "unit": "kgCO2e/L",
+                "reference": "IPCC 2006 Guidelines for GHG Inventories (Stationary Combustion)",
+                "version": "IPCC-2006-R2023",
+                "scope": "Scope 1",
+                "effective_from": datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            },
+            {
+                "source_name": "natural_gas",
+                "factor_value": 1.930,
+                "unit": "kgCO2e/m3",
+                "reference": "IPCC 2006 / GAIL India Reference Data",
+                "version": "IPCC-2006-R2023",
+                "scope": "Scope 1",
+                "effective_from": datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            },
+            {
+                "source_name": "lpg",
+                "factor_value": 2.980,
+                "unit": "kgCO2e/kg",
+                "reference": "IPCC 2006 Fuel Inventory Guidelines",
+                "version": "IPCC-2006-R2023",
+                "scope": "Scope 1",
+                "effective_from": datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            },
+            {
+                "source_name": "biomass",
+                "factor_value": 0.035,
+                "unit": "kgCO2e/kg",
+                "reference": "BEE / Ministry of New and Renewable Energy (MNRE) India",
+                "version": "MNRE-2023.2",
+                "scope": "Scope 1",
+                "effective_from": datetime.datetime(2023, 1, 1, tzinfo=datetime.timezone.utc),
+                "is_active": True
+            }
+        ]
+
+        for ef_data in official_factors:
+            existing = db.query(EmissionFactor).filter(EmissionFactor.source_name == ef_data["source_name"]).first()
+            if not existing:
+                ef = EmissionFactor(**ef_data)
+                db.add(ef)
+        db.commit()
+        print("Official emission factors seeded into database.")
+
         # Check if facility already seeded
         existing_facility = db.query(Facility).first()
         if existing_facility:

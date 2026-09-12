@@ -1,86 +1,168 @@
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
 
 class PeerClusterEngine:
     """
-    K-Means peer clustering model grouping facilities by production volume,
-    electrical intensity, and carbon intensity.
+    Statistically Defensible K-Means Peer Benchmarking Engine.
+    Requires genuine multi-facility telemetry datasets.
+    Zero synthetic or randomly generated peers.
     """
 
-    def __init__(self, n_clusters: int = 3):
-        self.n_clusters = n_clusters
+    MIN_ELIGIBLE_PEER_COUNT = 10
+    MIN_OBSERVATIONS_PER_PEER = 100
+    MIN_FEATURE_VARIANCE = 0.05
+
+    def __init__(self):
         self.scaler = StandardScaler()
-        self.model = KMeans(n_clusters=self.n_clusters, random_state=42, n_init="auto")
 
-    def _generate_synthetic_peer_pool(self, sector_avg_intensity: float) -> np.ndarray:
-        """Create a realistic peer cluster distribution around sector baseline."""
-        np.random.seed(42)
-        # 60 synthetic peer facilities in the same industrial sector
-        # Features: [Production Volume (1k - 50k), Electric Intensity, Fuel Intensity, Total Emission Intensity]
-        prod_vols = np.random.uniform(5000, 25000, 60)
-        emiss_intensities = np.clip(
-            np.random.normal(loc=sector_avg_intensity, scale=sector_avg_intensity * 0.25, size=60),
-            sector_avg_intensity * 0.4,
-            sector_avg_intensity * 2.2
-        )
-        elec_intensities = emiss_intensities * np.random.uniform(0.4, 0.7, 60)
-        fuel_intensities = emiss_intensities - elec_intensities
+    @staticmethod
+    def evaluate_defensibility(
+        peer_data: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Evaluate whether the available peer pool meets statistical clustering criteria:
+        1. Minimum eligible peer count (>= 10 facilities in same sector)
+        2. Minimum observations per facility (>= 100 records)
+        3. Feature completeness and non-zero variance (> 0.05)
+        """
+        peer_count = len(peer_data)
+        eligible_peers = [
+            p for p in peer_data 
+            if p.get("observation_count", 0) >= PeerClusterEngine.MIN_OBSERVATIONS_PER_PEER
+            and p.get("intensity", 0.0) > 0.0
+        ]
+        eligible_count = len(eligible_peers)
 
-        return np.column_stack([prod_vols, elec_intensities, fuel_intensities, emiss_intensities])
+        if eligible_count < PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT:
+            return {
+                "is_defensible": False,
+                "reason": (
+                    f"Insufficient peer facilities in this industrial sector. "
+                    f"Statistically defensible K-Means clustering requires at least "
+                    f"{PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT} comparable facilities with >= "
+                    f"{PeerClusterEngine.MIN_OBSERVATIONS_PER_PEER} telemetry readings each. "
+                    f"Found {eligible_count} eligible peer(s)."
+                ),
+                "peer_count": eligible_count,
+                "required_peers": PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT,
+                "observation_depth_met": all(p.get("observation_count", 0) >= PeerClusterEngine.MIN_OBSERVATIONS_PER_PEER for p in eligible_peers) if eligible_peers else False,
+                "variance_threshold_met": False
+            }
+
+        # Check feature matrix variance
+        features = np.array([
+            [p["production_volume"], p["electricity_intensity"], p.get("fuel_intensity", 0.0), p["intensity"]]
+            for p in eligible_peers
+        ])
+        variances = np.var(features, axis=0)
+        variance_met = bool(np.all(variances > PeerClusterEngine.MIN_FEATURE_VARIANCE))
+
+        if not variance_met:
+            return {
+                "is_defensible": False,
+                "reason": "Peer feature variance across the cohort is too low for distinct cluster separation.",
+                "peer_count": eligible_count,
+                "required_peers": PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT,
+                "observation_depth_met": True,
+                "variance_threshold_met": False
+            }
+
+        return {
+            "is_defensible": True,
+            "peer_count": eligible_count,
+            "required_peers": PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT,
+            "observation_depth_met": True,
+            "variance_threshold_met": True,
+            "features": features
+        }
 
     def cluster_facility(
         self,
-        facility_volume: float,
-        facility_intensity: float,
-        sector_avg_intensity: float
+        target_facility: Dict[str, Any],
+        peer_pool: List[Dict[str, Any]],
+        sector_baseline: float
     ) -> Dict[str, Any]:
-        """Group facility into peer cohort and compute peer benchmark gap."""
-        peers = self._generate_synthetic_peer_pool(sector_avg_intensity)
+        """
+        Group facility into peer cohort using K-Means if defensible,
+        otherwise return an honest 'insufficient_data' state.
+        Zero synthetic or fabricated data is generated.
+        """
+        validation = self.evaluate_defensibility(peer_pool)
+        if not validation["is_defensible"]:
+            return {
+                "status": "insufficient_data",
+                "has_peer_data": False,
+                "cluster_label": "Unassigned",
+                "cluster_name": "Insufficient Benchmark Peers",
+                "message": validation["reason"],
+                "peer_count": validation["peer_count"],
+                "required_peer_count": validation["required_peers"],
+                "criteria_status": {
+                    "eligible_peers_met": validation["peer_count"] >= PeerClusterEngine.MIN_ELIGIBLE_PEER_COUNT,
+                    "observation_depth_met": validation["observation_depth_met"],
+                    "variance_threshold_met": validation["variance_threshold_met"]
+                },
+                "facility_intensity": round(target_facility.get("intensity", 0.0), 2),
+                "cohort_average_intensity": round(sector_baseline, 2),
+                "gap_percent": 0.0,
+                "peer_characteristics": {
+                    "cohort_size": validation["peer_count"],
+                    "note": "K-Means clustering disabled until real sector peer threshold is satisfied."
+                }
+            }
 
-        facility_elec = facility_intensity * 0.55
-        facility_fuel = facility_intensity * 0.45
-        target_point = np.array([[facility_volume, facility_elec, facility_fuel, facility_intensity]])
+        # Genuine clustering on real peers
+        peer_features = validation["features"]
+        target_features = np.array([[
+            target_facility["production_volume"],
+            target_facility["electricity_intensity"],
+            target_facility.get("fuel_intensity", 0.0),
+            target_facility["intensity"]
+        ]])
 
-        all_points = np.vstack([peers, target_point])
+        all_points = np.vstack([peer_features, target_features])
         scaled_points = self.scaler.fit_transform(all_points)
 
-        self.model.fit(scaled_points[:-1])
-        target_cluster = int(self.model.predict(scaled_points[-1:])[0])
+        k = min(3, len(peer_features) // 3)
+        model = KMeans(n_clusters=k, random_state=42, n_init="auto")
+        model.fit(scaled_points[:-1])
+        target_cluster = int(model.predict(scaled_points[-1:])[0])
 
-        cluster_labels = self.model.labels_
+        cluster_labels = model.labels_
         peer_mask = cluster_labels == target_cluster
-        peer_count = int(np.sum(peer_mask))
+        assigned_peers_intensity = peer_features[peer_mask, 3]
+        cluster_avg_intensity = float(np.mean(assigned_peers_intensity)) if len(assigned_peers_intensity) > 0 else sector_baseline
 
-        # Average emission intensity of the assigned peer cluster
-        cluster_peers_intensity = peers[peer_mask, 3]
-        cluster_avg_intensity = float(np.mean(cluster_peers_intensity)) if len(cluster_peers_intensity) > 0 else sector_avg_intensity
+        facility_intensity = target_facility["intensity"]
+        gap_percent = round(((facility_intensity - cluster_avg_intensity) / cluster_avg_intensity) * 100, 1) if cluster_avg_intensity > 0 else 0.0
 
-        gap_percent = round(((facility_intensity - cluster_avg_intensity) / cluster_avg_intensity) * 100, 1)
-
-        # Name the cluster intuitively based on rank of its intensity
-        cluster_centers_intensity = [float(np.mean(peers[cluster_labels == i, 3])) for i in range(self.n_clusters)]
+        # Rank clusters by centroid intensity
+        cluster_centers_intensity = [float(np.mean(peer_features[cluster_labels == i, 3])) for i in range(k)]
         sorted_indices = np.argsort(cluster_centers_intensity)
 
         if target_cluster == sorted_indices[0]:
             cluster_name = "Top-Decile Clean Producers"
         elif target_cluster == sorted_indices[-1]:
-            cluster_name = "High Carbon Intensity (Urgent Intervention Needed)"
+            cluster_name = "High Carbon Intensity Cohort"
         else:
             cluster_name = "Median Industry Cohort"
 
         return {
+            "status": "success",
+            "has_peer_data": True,
             "cluster_id": target_cluster + 1,
+            "cluster_label": f"Cluster {target_cluster + 1}",
             "cluster_name": cluster_name,
-            "similar_facility_count": max(peer_count, 12),
+            "similar_facility_count": int(np.sum(peer_mask)),
             "facility_intensity": round(facility_intensity, 2),
             "cluster_average": round(cluster_avg_intensity, 2),
             "gap_percent": gap_percent,
             "peer_characteristics": {
-                "cohort_size": max(peer_count, 12),
-                "cohort_volume_range": "8,000 - 20,000 units/mo",
-                "cohort_efficiency_profile": "Standard grid and thermal fuel mix"
+                "cohort_size": int(np.sum(peer_mask)),
+                "cluster_k": k,
+                "validation": "Statistically defensible multi-facility cluster"
             }
         }

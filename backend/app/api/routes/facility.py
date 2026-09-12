@@ -20,7 +20,7 @@ def create_facility(
 ):
     """Create a new industrial facility profile."""
     facility = FacilityService.create_facility(db, facility_in)
-    if current_user and not current_user.facility_id:
+    if current_user:
         current_user.facility_id = facility.id
         db.commit()
     return APIResponse(success=True, data=FacilityResponse.model_validate(facility))

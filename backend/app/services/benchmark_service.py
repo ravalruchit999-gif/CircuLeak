@@ -74,7 +74,7 @@ class BenchmarkService:
 
     @staticmethod
     def get_peer_clustering(db: Session, facility_id: int) -> Dict[str, Any]:
-        """Run K-Means peer clustering to benchmark against peer facilities."""
+        """Run statistically defensible K-Means peer clustering against real sector peers."""
         summary = EmissionService.calculate_summary(db, facility_id)
         intensity = summary["emissions_intensity"]
         volume = summary["total_production_volume"]
@@ -87,31 +87,76 @@ class BenchmarkService:
             return {
                 "facility_id": facility_id,
                 "has_peer_data": False,
+                "status": "insufficient_data",
                 "cluster_label": "Unassigned",
                 "cluster_name": "No Telemetry Records",
+                "message": "Telemetry must be ingested before benchmarking against peer facilities.",
                 "peer_count": 0,
                 "peer_cohort_size": 0,
                 "cohort_average_intensity": avg_intensity,
+                "gap_to_cohort_avg_percent": 0.0,
                 "peers": []
             }
 
-        cluster_engine = PeerClusterEngine(n_clusters=3)
+        # Query genuine peer facilities in the same sector
+        from app.models.facility import Facility
+        from app.models.process_data import ProcessData
+        from sqlalchemy import func
+
+        other_facilities = db.query(Facility).filter(
+            Facility.sector == sector,
+            Facility.id != facility_id
+        ).all()
+
+        peer_pool = []
+        for fac in other_facilities:
+            obs_count = db.query(func.count(ProcessData.id)).filter(ProcessData.facility_id == fac.id).scalar() or 0
+            if obs_count > 0:
+                fac_summary = EmissionService.calculate_summary(db, fac.id)
+                peer_pool.append({
+                    "facility_id": fac.id,
+                    "business_name": fac.business_name,
+                    "observation_count": obs_count,
+                    "production_volume": fac_summary["total_production_volume"],
+                    "electricity_intensity": round(fac_summary["total_electricity_kwh"] / max(1.0, fac_summary["total_production_volume"]), 3),
+                    "intensity": fac_summary["emissions_intensity"]
+                })
+
+        target_fac_info = {
+            "facility_id": facility_id,
+            "production_volume": volume,
+            "electricity_intensity": round(summary["total_electricity_kwh"] / max(1.0, volume), 3),
+            "intensity": intensity
+        }
+
+        cluster_engine = PeerClusterEngine()
         res = cluster_engine.cluster_facility(
-            facility_volume=volume,
-            facility_intensity=intensity,
-            sector_avg=avg_intensity
+            target_facility=target_fac_info,
+            peer_pool=peer_pool,
+            sector_baseline=avg_intensity
         )
 
         return {
             "facility_id": facility_id,
-            "has_peer_data": True,
-            "cluster_label": str(res["cluster_label"]),
-            "cluster_name": res["cluster_name"],
-            "cluster_description": res["cluster_description"],
-            "peer_count": res["peer_count"],
-            "peer_cohort_size": res["peer_count"],
-            "cohort_average_intensity": res["cohort_average_intensity"],
-            "gap_to_cohort_avg_percent": res["gap_to_cohort_avg_percent"],
-            "cohort_intensity_range": res["cohort_intensity_range"],
-            "peers": res["peers"]
+            "has_peer_data": res["has_peer_data"],
+            "status": res.get("status", "insufficient_data"),
+            "cluster_label": str(res.get("cluster_label", "Unassigned")),
+            "cluster_name": res.get("cluster_name", "Insufficient Benchmark Peers"),
+            "message": res.get("message", ""),
+            "peer_count": res.get("peer_count", len(peer_pool)),
+            "peer_cohort_size": res.get("similar_facility_count", len(peer_pool)),
+            "cohort_average_intensity": res.get("cluster_average", avg_intensity),
+            "gap_to_cohort_avg_percent": res.get("gap_percent", 0.0),
+            "criteria_status": res.get("criteria_status", {}),
+            "peer_characteristics": res.get("peer_characteristics", {}),
+            "peers": [
+                {
+                    "facility_id": p["facility_id"],
+                    "name": p["business_name"],
+                    "intensity": p["intensity"],
+                    "volume": p["production_volume"]
+                }
+                for p in peer_pool
+            ]
         }
+

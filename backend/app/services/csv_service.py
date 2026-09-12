@@ -5,26 +5,18 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 import pandas as pd
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.models.process_data import ProcessData
 from app.models.facility import Facility
 from app.models.data_upload import DataUpload
+from app.models.analysis_run import AnalysisRun
 from app.models.audit_log import AuditLog
+from app.models.emission_factor import EmissionFactor
 from app.services.data_quality_service import DataQualityService
 from app.services.leak_service import LeakService
-from app.utils.calculations import calculate_emissions_for_row
-
-CANONICAL_FIELDS = {
-    "date": ["date", "timestamp", "datetime", "record_date", "day"],
-    "hour": ["hour", "hr", "time_hour"],
-    "equipment": ["equipment", "asset", "machine", "machine_name", "equipment_name", "device", "unit"],
-    "process": ["process", "process_name", "department", "area", "line", "stage"],
-    "electricity_kwh": ["electricity_kwh", "electricity", "kwh", "power_kwh", "active_power", "energy_kwh", "electricity_consumption", "energy"],
-    "fuel_type": ["fuel_type", "energy_source", "thermal_carrier"],
-    "fuel_quantity": ["fuel_quantity", "fuel_consumed", "fuel_liters", "fuel_scm", "fuel_volume", "fuel_amount"],
-    "production_volume": ["production_volume", "production", "output", "output_mt", "production_tons", "tons", "batch_yield"],
-    "operating_hours": ["operating_hours", "runtime_hours", "uptime_hours", "run_hours", "op_hours"]
-}
+from app.services.emission_service import EmissionService
+from app.schemas.telemetry_contract import TelemetryContract, TelemetryContractValidationError, CANONICAL_ALIASES
 
 
 class CSVService:
@@ -39,61 +31,37 @@ class CSVService:
                 df = pd.read_csv(io.BytesIO(file_content))
             return df
         except Exception as e:
-            raise ValueError(f"Failed to parse file '{filename}': {str(e)}")
+            raise ValueError(f"Failed to parse spreadsheet '{filename}': {str(e)}")
 
     @staticmethod
     def inspect_file(file_content: bytes, filename: str) -> Dict[str, Any]:
         """
-        Inspect uploaded file without saving: detect columns, suggest mappings,
-        and provide preview rows and preliminary diagnostics.
+        Inspect uploaded file without saving: detect columns against the canonical
+        data contract, suggest mappings, and provide preview rows and diagnostics.
         """
         df = CSVService.read_file_to_dataframe(file_content, filename)
         detected_columns = [str(c).strip() for c in df.columns]
 
-        # Auto-match detected columns to canonical schema with 1-to-1 priority
-        suggested_mapping: Dict[str, str] = {}
-        used_canonicals = set()
+        suggested_mapping = TelemetryContract.detect_column_mappings(detected_columns)
+        mapped_canonicals = set(suggested_mapping.values())
 
-        # Pass 1: Exact matches
-        for col in detected_columns:
-            clean_col = re.sub(r"[^a-zA-Z0-9_]", "", col.lower().replace(" ", "_"))
-            for canonical, aliases in CANONICAL_FIELDS.items():
-                if canonical in used_canonicals:
-                    continue
-                if clean_col == canonical or clean_col in aliases:
-                    suggested_mapping[col] = canonical
-                    used_canonicals.add(canonical)
-                    break
+        # Check required fields
+        required_fields = ["equipment", "electricity_kwh"]
+        missing_required = [req for req in required_fields if req not in mapped_canonicals]
 
-        # Pass 2: Word boundary / substring matches for remaining unmapped columns
-        for col in detected_columns:
-            if col in suggested_mapping:
-                continue
-            clean_col = re.sub(r"[^a-zA-Z0-9_]", "", col.lower().replace(" ", "_"))
-            col_tokens = set(clean_col.split("_"))
-            for canonical, aliases in CANONICAL_FIELDS.items():
-                if canonical in used_canonicals:
-                    continue
-                if any(alias in col_tokens for alias in aliases):
-                    suggested_mapping[col] = canonical
-                    used_canonicals.add(canonical)
-                    break
+        # Check time fidelity: timestamp or date
+        if "timestamp" not in mapped_canonicals and "date" not in mapped_canonicals:
+            missing_required.append("timestamp (or date)")
 
-        # Preview rows (up to 5) with clean JSON serializable values
         preview_df = df.head(5).fillna("")
         preview_rows = preview_df.to_dict(orient="records")
-
-        # Canonical requirement checklist
-        mapped_canonicals = set(suggested_mapping.values())
-        required_fields = ["date", "equipment", "process", "electricity_kwh"]
-        missing_required = [req for req in required_fields if req not in mapped_canonicals]
 
         return {
             "filename": filename,
             "total_rows_detected": len(df),
             "detected_columns": detected_columns,
             "suggested_mapping": suggested_mapping,
-            "canonical_fields": list(CANONICAL_FIELDS.keys()),
+            "canonical_fields": list(CANONICAL_ALIASES.keys()),
             "missing_required": missing_required,
             "can_proceed_auto": len(missing_required) == 0,
             "preview_rows": preview_rows
@@ -109,8 +77,12 @@ class CSVService:
         custom_mapping: Optional[Dict[str, str]] = None
     ) -> Dict[str, Any]:
         """
-        Ingest, remap, validate, compute emissions per row, evaluate data quality,
-        and persist telemetry into PostgreSQL with audit logging.
+        Production Telemetry Ingestion Pipeline:
+        1. Validates against production data contract (no silent column invention).
+        2. Preserves native sub-hourly timestamp fidelity (minute, 15-min, hourly).
+        3. Enforces non-destructive idempotent upsert on (facility_id, timestamp, equipment, process).
+        4. Calculates emissions using active database EmissionFactors with auditor provenance.
+        5. Logs full ML lineage in analysis_runs and audit_logs.
         """
         facility = db.query(Facility).filter(Facility.id == facility_id).first()
         if not facility:
@@ -121,142 +93,31 @@ class CSVService:
         if raw_rows_count == 0:
             raise ValueError("The uploaded dataset is completely empty (0 rows).")
 
-        # Apply column mapping
-        mapping = custom_mapping or {}
-        if not mapping:
-            # Auto-detect mapping
-            inspection = CSVService.inspect_file(file_content, filename)
-            mapping = inspection["suggested_mapping"]
-
-        # Rename columns to canonical names
-        renamed_df = df.rename(columns=mapping)
-
-        # Deduplicate columns if any mappings collided
-        renamed_df = renamed_df.loc[:, ~renamed_df.columns.duplicated()].copy()
-
-        # Check essential columns
-        if "equipment" not in renamed_df.columns:
-            renamed_df["equipment"] = renamed_df.get("process", "Primary Industrial Unit")
-        if "process" not in renamed_df.columns:
-            renamed_df["process"] = "General Manufacturing"
-        if "electricity_kwh" not in renamed_df.columns:
-            num_cols = renamed_df.select_dtypes(include=["number"]).columns
-            if len(num_cols) > 0:
-                renamed_df["electricity_kwh"] = renamed_df[num_cols[0]]
-            else:
-                raise ValueError("Could not map or find a numeric electricity consumption column (kWh).")
-
-        today_str = datetime.now().strftime("%Y-%m-%d")
-
-        # Normalize date & hour
-        if "date" not in renamed_df.columns:
-            renamed_df["date"] = today_str
-        else:
-            try:
-                parsed_dates = pd.to_datetime(renamed_df["date"], errors="coerce")
-                renamed_df["date"] = parsed_dates.dt.strftime("%Y-%m-%d").fillna(today_str)
-                if "hour" not in renamed_df.columns and parsed_dates.dt.hour is not None:
-                    renamed_df["hour"] = parsed_dates.dt.hour.fillna(0).astype(int)
-            except Exception:
-                renamed_df["date"] = renamed_df["date"].astype(str)
-
-        if "hour" not in renamed_df.columns:
-            renamed_df["hour"] = 0
-        else:
-            renamed_df["hour"] = pd.to_numeric(renamed_df["hour"], errors="coerce").fillna(0).astype(int) % 24
-
-        # Clean numeric fields
-        renamed_df["electricity_kwh"] = pd.to_numeric(renamed_df["electricity_kwh"], errors="coerce").fillna(0.0)
-
-        if "production_volume" not in renamed_df.columns:
-            renamed_df["production_volume"] = 0.0
-        else:
-            renamed_df["production_volume"] = pd.to_numeric(renamed_df["production_volume"], errors="coerce").fillna(0.0)
-
-        if "fuel_type" not in renamed_df.columns:
-            renamed_df["fuel_type"] = "none"
-        else:
-            renamed_df["fuel_type"] = renamed_df["fuel_type"].fillna("none").astype(str)
-
-        if "fuel_quantity" not in renamed_df.columns:
-            renamed_df["fuel_quantity"] = 0.0
-        else:
-            renamed_df["fuel_quantity"] = pd.to_numeric(renamed_df["fuel_quantity"], errors="coerce").fillna(0.0)
-
-        if "operating_hours" not in renamed_df.columns:
-            renamed_df["operating_hours"] = 1.0
-        else:
-            renamed_df["operating_hours"] = pd.to_numeric(renamed_df["operating_hours"], errors="coerce").fillna(1.0)
-
-        # Detect duplicate rows
-        subset_cols = ["date", "hour", "equipment"]
-        available_subset = [c for c in subset_cols if c in renamed_df.columns]
-        duplicates_count = int(renamed_df.duplicated(subset=available_subset).sum()) if available_subset else 0
-
-        # Discard invalid negative electricity rows
-        valid_df = renamed_df[renamed_df["electricity_kwh"] >= 0].copy()
+        # 1. Validate & Normalize against formal Production Data Contract
+        valid_df, contract_report = TelemetryContract.validate_and_normalize(df, custom_mapping)
         valid_count = len(valid_df)
-        rejected_count = raw_rows_count - valid_count
+        rejected_count = contract_report["rejected_count"]
+        duplicates_count = contract_report["duplicate_count"]
+
         rejection_reasons = []
         if rejected_count > 0:
-            rejection_reasons.append(f"{rejected_count} rows contained negative or unparseable electricity values.")
+            rejection_reasons.append(f"{rejected_count} rows contained negative, unparseable, or missing required values.")
         if duplicates_count > 0:
-            rejection_reasons.append(f"{duplicates_count} duplicate timestamp-equipment rows were identified.")
+            rejection_reasons.append(f"{duplicates_count} duplicate timestamp-equipment rows were merged.")
 
-        # Compute dynamic Data Quality
+        # 2. Dynamic Data Quality Evaluation
         quality_eval = DataQualityService.evaluate_dataframe_quality(valid_df)
         data_coverage = round((valid_count / max(1, raw_rows_count)) * 100.0, 1)
 
-        # Calculate emissions per row
-        valid_df["calculated_emissions_kg"] = valid_df.apply(
-            lambda r: calculate_emissions_for_row(
-                electricity_kwh=float(r["electricity_kwh"]),
-                fuel_type=str(r["fuel_type"]),
-                fuel_quantity=float(r["fuel_quantity"])
-            ),
-            axis=1
-        )
+        analysis_run_id = f"RUN-INGEST-{uuid.uuid4().hex[:8].upper()}"
+        start_time = datetime.now(timezone.utc)
 
-        # Clear prior telemetry for clean replacement
-        db.query(ProcessData).filter(ProcessData.facility_id == facility_id).delete()
-
-        # Bulk save objects
-        records_to_save = [
-            ProcessData(
-                facility_id=facility_id,
-                date=str(row["date"]),
-                hour=int(row["hour"]),
-                equipment=str(row["equipment"]).strip(),
-                process=str(row["process"]).strip(),
-                electricity_kwh=float(row["electricity_kwh"]),
-                fuel_type=str(row["fuel_type"]).strip(),
-                fuel_quantity=float(row["fuel_quantity"]),
-                production_volume=float(row["production_volume"]),
-                operating_hours=float(row["operating_hours"]),
-                calculated_emissions_kg=float(row["calculated_emissions_kg"])
-            )
-            for _, row in valid_df.iterrows()
-        ]
-
-        if records_to_save:
-            db.bulk_save_objects(records_to_save)
-            db.commit()
-
-        # Pre-compute and sync anomalies
-        anomalies_detected = 0
-        try:
-            detected_leaks = LeakService.detect_and_sync_anomalies(db=db, facility_id=facility_id)
-            anomalies_detected = len(detected_leaks)
-        except Exception as e:
-            print(f"Warning: Anomaly detector sync notice: {e}")
-
-        # Record upload in data_uploads table
-        analysis_run_id = f"RUN-{uuid.uuid4().hex[:8].upper()}"
+        # 3. Create Upload & Ingestion Run Tracking Records
         upload_entry = DataUpload(
             facility_id=facility_id,
             filename=filename,
             uploaded_by=user_id,
-            uploaded_at=datetime.now(timezone.utc),
+            uploaded_at=start_time,
             row_count=raw_rows_count,
             valid_row_count=valid_count,
             invalid_row_count=rejected_count,
@@ -266,12 +127,157 @@ class CSVService:
             dimensions=quality_eval["dimensions"],
             warnings=quality_eval["warnings"],
             rejection_reasons=rejection_reasons,
-            analysis_status="completed",
+            analysis_status="processing",
             analysis_run_id=analysis_run_id
         )
         db.add(upload_entry)
+        db.flush()
 
-        # Audit log entry
+        ingest_run = AnalysisRun(
+            id=analysis_run_id,
+            facility_id=facility_id,
+            upload_id=upload_entry.id,
+            analysis_type="telemetry_ingestion",
+            model_name="CanonicalIngestionPipeline",
+            model_version="1.0.0",
+            parameters={"custom_mapping": custom_mapping or {}},
+            feature_set=list(valid_df.columns),
+            input_row_count=raw_rows_count,
+            started_at=start_time,
+            status="running"
+        )
+        db.add(ingest_run)
+        db.flush()
+
+        # 4. Database-Driven Emission Calculation with Full Provenance
+        factors_lookup = EmissionService.get_active_factors_lookup(db)
+        grid_factor_obj = factors_lookup.get("grid_electricity")
+        grid_factor_val = grid_factor_obj.factor_value if grid_factor_obj else 0.716
+
+        def compute_row_emissions_and_provenance(row):
+            elec_kwh = float(row.get("electricity_kwh", 0.0) or 0.0)
+            fuel_qty = float(row.get("fuel_quantity", 0.0) or 0.0)
+            fuel_type_str = str(row.get("fuel_type", "none") or "none").strip().lower()
+
+            total_emiss = elec_kwh * grid_factor_val
+            ef_id = grid_factor_obj.id if grid_factor_obj else None
+            ef_version = grid_factor_obj.version if grid_factor_obj else "v19-2024"
+            ef_ref = grid_factor_obj.reference if grid_factor_obj else "India CEA CO2 Baseline Database v19 (2024)"
+            ef_from = grid_factor_obj.effective_from if grid_factor_obj else None
+            ef_to = grid_factor_obj.effective_to if grid_factor_obj else None
+
+            if fuel_type_str != "none" and fuel_qty > 0:
+                fuel_clean = fuel_type_str.replace(" ", "_").replace("-", "_")
+                fuel_ef = factors_lookup.get(fuel_clean)
+                if fuel_ef:
+                    total_emiss += fuel_qty * fuel_ef.factor_value
+
+            return pd.Series([round(total_emiss, 4), ef_id, ef_version, ef_ref, ef_from, ef_to])
+
+        provenance_df = valid_df.apply(compute_row_emissions_and_provenance, axis=1)
+        valid_df["calculated_emissions_kg"] = provenance_df[0]
+        valid_df["ef_id"] = provenance_df[1]
+        valid_df["ef_version"] = provenance_df[2]
+        valid_df["ef_ref"] = provenance_df[3]
+        valid_df["ef_from"] = provenance_df[4]
+        valid_df["ef_to"] = provenance_df[5]
+
+        # 5. Non-Destructive Idempotent Telemetry Upsert
+        # Preserves historical records outside the uploaded file time window
+        records_to_upsert = []
+        for _, row in valid_df.iterrows():
+            ts = row["normalized_timestamp"]
+            if hasattr(ts, "to_pydatetime"):
+                ts = ts.to_pydatetime()
+
+            records_to_upsert.append({
+                "facility_id": facility_id,
+                "timestamp": ts,
+                "date": str(row["date"]),
+                "hour": int(row["hour"]),
+                "equipment": str(row["equipment"]).strip(),
+                "process": str(row["process"]).strip(),
+                "electricity_kwh": float(row["electricity_kwh"]),
+                "fuel_type": str(row["fuel_type"]).strip(),
+                "fuel_quantity": float(row["fuel_quantity"]),
+                "production_volume": float(row["production_volume"]),
+                "operating_hours": float(row["operating_hours"]),
+                "calculated_emissions_kg": float(row["calculated_emissions_kg"]),
+                "upload_id": upload_entry.id,
+                "emission_factor_id": row["ef_id"] if pd.notna(row["ef_id"]) else None,
+                "emission_factor_version": str(row["ef_version"]) if pd.notna(row["ef_version"]) else None,
+                "emission_factor_source_reference": str(row["ef_ref"]) if pd.notna(row["ef_ref"]) else None,
+                "emission_factor_effective_from": row["ef_from"] if pd.notna(row["ef_from"]) else None,
+                "emission_factor_effective_to": row["ef_to"] if pd.notna(row["ef_to"]) else None,
+                "calculation_method": "IPCC_Tier_1_Direct_Multiplication",
+                "calculated_at": datetime.now(timezone.utc)
+            })
+
+        if records_to_upsert:
+            is_pg = bool(db.bind and "postgresql" in str(db.bind.dialect.name))
+            if is_pg:
+                # Production PostgreSQL high-performance batch upsert
+                batch_size = 500
+                for i in range(0, len(records_to_upsert), batch_size):
+                    batch = records_to_upsert[i:i + batch_size]
+                    stmt = pg_insert(ProcessData).values(batch)
+                    stmt = stmt.on_conflict_do_update(
+                        index_elements=["facility_id", "timestamp", "equipment", "process"],
+                        set_={
+                            "electricity_kwh": stmt.excluded.electricity_kwh,
+                            "fuel_type": stmt.excluded.fuel_type,
+                            "fuel_quantity": stmt.excluded.fuel_quantity,
+                            "production_volume": stmt.excluded.production_volume,
+                            "operating_hours": stmt.excluded.operating_hours,
+                            "calculated_emissions_kg": stmt.excluded.calculated_emissions_kg,
+                            "upload_id": stmt.excluded.upload_id,
+                            "emission_factor_id": stmt.excluded.emission_factor_id,
+                            "emission_factor_version": stmt.excluded.emission_factor_version,
+                            "emission_factor_source_reference": stmt.excluded.emission_factor_source_reference,
+                            "emission_factor_effective_from": stmt.excluded.emission_factor_effective_from,
+                            "emission_factor_effective_to": stmt.excluded.emission_factor_effective_to,
+                            "calculation_method": stmt.excluded.calculation_method,
+                            "calculated_at": stmt.excluded.calculated_at,
+                        }
+                    )
+                    db.execute(stmt)
+            else:
+                # Portable upsert loop for in-memory SQLite testing
+                for r in records_to_upsert:
+                    existing = db.query(ProcessData).filter(
+                        ProcessData.facility_id == r["facility_id"],
+                        ProcessData.timestamp == r["timestamp"],
+                        ProcessData.equipment == r["equipment"],
+                        ProcessData.process == r["process"]
+                    ).first()
+                    if existing:
+                        for k, v in r.items():
+                            setattr(existing, k, v)
+                    else:
+                        db.add(ProcessData(**r))
+            db.commit()
+
+
+        # 6. ML Behavioral Anomaly Detection & Model Run Tracking
+        anomalies_detected = 0
+        anomaly_run_id = f"RUN-ANOMALY-{uuid.uuid4().hex[:8].upper()}"
+        try:
+            detected_leaks = LeakService.detect_and_sync_anomalies(
+                db=db,
+                facility_id=facility_id,
+                upload_id=upload_entry.id,
+                analysis_run_id=anomaly_run_id
+            )
+            anomalies_detected = len(detected_leaks)
+        except Exception as e:
+            print(f"Warning: Anomaly detector sync notice: {e}")
+
+        # Complete ingestion run
+        ingest_run.status = "completed"
+        ingest_run.completed_at = datetime.now(timezone.utc)
+        upload_entry.analysis_status = "completed"
+
+        # 7. Audit Log Entry
         audit_entry = AuditLog(
             user_id=user_id,
             action="dataset_uploaded",
@@ -279,6 +285,9 @@ class CSVService:
             resource_id=str(facility_id),
             details={
                 "filename": filename,
+                "upload_id": upload_entry.id,
+                "ingest_run_id": analysis_run_id,
+                "anomaly_run_id": anomaly_run_id,
                 "rows_ingested": valid_count,
                 "anomalies_detected": anomalies_detected,
                 "confidence_score": quality_eval["confidence_score"]

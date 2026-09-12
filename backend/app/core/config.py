@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: Union[str, List[str]] = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
+    # Security
+    JWT_SECRET: str = "circuleak-production-secure-auth-secret-key-991283741-2026"
+
     # Uploads
     UPLOAD_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
 

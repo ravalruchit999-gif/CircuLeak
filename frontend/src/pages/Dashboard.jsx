@@ -39,6 +39,9 @@ export function Dashboard() {
     );
   }
 
+  const leakCount = data?.anomalies_count ?? (data?.active_leaks_count ?? (data?.leaks?.length ?? 0));
+  const facilityLabel = data?.facility?.business_name || 'Telemetry Feed Active';
+
   return (
     <div>
       <PageHeader
@@ -46,14 +49,14 @@ export function Dashboard() {
         subtitle="Industrial emission intelligence, flagged anomaly leaks, and circular savings opportunities"
         badge={
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-            Unit 4 Live
+            {facilityLabel}
           </span>
         }
         actions={
           <div className="flex items-center gap-2">
             <Link to="/leaks">
               <Button variant="secondary" size="sm" icon={AlertTriangle}>
-                Review 3 Leaks
+                {leakCount > 0 ? `Review ${leakCount} ${leakCount === 1 ? 'Leak' : 'Leaks'}` : 'View Leaks'}
               </Button>
             </Link>
             <Link to="/simulation">
@@ -69,4 +72,5 @@ export function Dashboard() {
     </div>
   );
 }
+
 export default Dashboard;

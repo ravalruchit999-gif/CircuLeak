@@ -92,7 +92,10 @@ class RecommendationService:
                 m["match_reason"] = f"Direct equipment match for {m.get('target_equipment', '')} flagged as top carbon hotspot/leak."
 
         matches.sort(key=lambda x: float(x.get("match_score", 0.0) or 0.0), reverse=True)
-        return matches
+        # Enforce statistical relevance threshold: do not return arbitrary candidates
+        MIN_RECOMMENDATION_SIMILARITY = 0.15
+        relevant_matches = [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= MIN_RECOMMENDATION_SIMILARITY]
+        return relevant_matches
 
     @staticmethod
     def get_recommendations_for_leak(db: Session, leak_id: int) -> List[Dict[str, Any]]:
@@ -106,4 +109,6 @@ class RecommendationService:
         query_text = f"{leak_detail.get('equipment', '')} {leak_detail.get('process', '')} {leak_detail.get('reason', '')} {causes_str}"
 
         matches = RecommendationService._semantic_similarity_match(query_text, DEFAULT_RECOMMENDATIONS)
-        return [m for m in matches if float(m.get("match_score", 0.0) or 0.0) > 0.05][:5]
+        MIN_RECOMMENDATION_SIMILARITY = 0.15
+        return [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= MIN_RECOMMENDATION_SIMILARITY][:5]
+
