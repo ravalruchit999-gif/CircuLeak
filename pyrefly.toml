@@ -1,0 +1,27 @@
+project-excludes = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/venv/**/*",
+]
+python-platform = "windows"
+python-version = "3.14.0"
+site-package-path = [
+    "C:/Users/Raval Ruchit/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages",
+    "backend",
+    "backend/app"
+]
+search-path = [
+    "backend",
+    "backend/app"
+]
+enabled-ignores = [
+    "type",
+    "pyrefly",
+]
+type-ignore-unknown-tag-behavior = "suppress"
+check-unannotated-defs = false
+disable-type-errors-in-ide = true
+ignore-errors-in-generated-code = true
+
+[errors]
