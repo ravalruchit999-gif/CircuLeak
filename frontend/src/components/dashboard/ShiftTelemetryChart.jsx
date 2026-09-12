@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -7,92 +7,149 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  ReferenceArea,
-  ReferenceLine,
 } from 'recharts';
 import { SectionCard } from '../ui/SectionCard';
 import { Activity, AlertTriangle, Clock, Zap, Info } from 'lucide-react';
-import { Button } from '../ui/Button';
-
-// 24-Hour Diurnal telemetry profile for Apex Metals & Casting Unit 4
-// Baseline expected load vs Actual measured emissions
-// Shows the distinct unloader valve leak during off-hours (22:00 - 06:00)
-const hourlyData = [
-  { hour: '00:00', baseline: 310, actual: 430, shift: 'Night', leak: 120 },
-  { hour: '01:00', baseline: 310, actual: 428, shift: 'Night', leak: 118 },
-  { hour: '02:00', baseline: 305, actual: 425, shift: 'Night', leak: 120 },
-  { hour: '03:00', baseline: 305, actual: 429, shift: 'Night', leak: 124 },
-  { hour: '04:00', baseline: 315, actual: 435, shift: 'Night', leak: 120 },
-  { hour: '05:00', baseline: 330, actual: 445, shift: 'Night', leak: 115 },
-  { hour: '06:00', baseline: 480, actual: 495, shift: 'Morning', leak: 15 },
-  { hour: '07:00', baseline: 540, actual: 550, shift: 'Morning', leak: 10 },
-  { hour: '08:00', baseline: 580, actual: 590, shift: 'Morning', leak: 10 },
-  { hour: '09:00', baseline: 590, actual: 605, shift: 'Morning', leak: 15 },
-  { hour: '10:00', baseline: 610, actual: 620, shift: 'Morning', leak: 10 },
-  { hour: '11:00', baseline: 600, actual: 615, shift: 'Morning', leak: 15 },
-  { hour: '12:00', baseline: 570, actual: 582, shift: 'Morning', leak: 12 },
-  { hour: '13:00', baseline: 585, actual: 598, shift: 'Morning', leak: 13 },
-  { hour: '14:00', baseline: 560, actual: 575, shift: 'Evening', leak: 15 },
-  { hour: '15:00', baseline: 570, actual: 584, shift: 'Evening', leak: 14 },
-  { hour: '16:00', baseline: 580, actual: 595, shift: 'Evening', leak: 15 },
-  { hour: '17:00', baseline: 590, actual: 610, shift: 'Evening', leak: 20 },
-  { hour: '18:00', baseline: 585, actual: 602, shift: 'Evening', leak: 17 },
-  { hour: '19:00', baseline: 560, actual: 578, shift: 'Evening', leak: 18 },
-  { hour: '20:00', baseline: 520, actual: 538, shift: 'Evening', leak: 18 },
-  { hour: '21:00', baseline: 460, actual: 480, shift: 'Evening', leak: 20 },
-  { hour: '22:00', baseline: 320, actual: 440, shift: 'Night', leak: 120 },
-  { hour: '23:00', baseline: 315, actual: 432, shift: 'Night', leak: 117 },
-];
+import { useFacilityContext } from '../../context/FacilityContext';
+import { getEmissionsTimeline } from '../../services/emissionsApi';
+import { getLeakAnomalies } from '../../services/leaksApi';
 
 export function ShiftTelemetryChart() {
+  const { currentFacilityId } = useFacilityContext();
+  const [timelineData, setTimelineData] = useState([]);
+  const [topLeak, setTopLeak] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeShiftFilter, setActiveShiftFilter] = useState('all');
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTimeline = async () => {
+      if (!currentFacilityId) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const [timeRes, anomRes] = await Promise.allSettled([
+          getEmissionsTimeline(currentFacilityId),
+          getLeakAnomalies(currentFacilityId),
+        ]);
+
+        const rawTimeline = timeRes.status === 'fulfilled' ? (timeRes.value?.data || []) : [];
+        const rawAnoms = anomRes.status === 'fulfilled' ? (anomRes.value?.data?.anomalies || anomRes.value?.data?.leaks || []) : [];
+
+        if (isMounted) {
+          if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
+            const formatted = rawTimeline.map((pt) => {
+              const hourNum = typeof pt.hour === 'number' ? pt.hour : parseInt(pt.hour || '0', 10);
+              const hourLabel = `${String(hourNum).padStart(2, '0')}:00`;
+              const shift = hourNum >= 22 || hourNum < 6 ? 'Night' : hourNum < 14 ? 'Morning' : 'Evening';
+              const actual = Math.round(pt.actual ?? pt.emissions ?? pt.electricity_kwh ?? 0);
+              const baseline = Math.round(pt.baseline ?? (actual * 0.85));
+              const leak = Math.max(0, actual - baseline);
+
+              return {
+                hour: hourLabel,
+                hourNum,
+                shift,
+                actual,
+                baseline,
+                leak,
+              };
+            });
+            setTimelineData(formatted);
+          } else {
+            setTimelineData([]);
+          }
+
+          if (rawAnoms.length > 0) {
+            setTopLeak(rawAnoms[0]);
+          } else {
+            setTopLeak(null);
+          }
+        }
+      } catch (err) {
+        if (isMounted) setTimelineData([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchTimeline();
+    return () => {
+      isMounted = false;
+    };
+  }, [currentFacilityId]);
+
+  const hasData = timelineData.length > 0;
 
   const filteredData =
     activeShiftFilter === 'all'
-      ? hourlyData
-      : hourlyData.filter((d) => d.shift.toLowerCase() === activeShiftFilter);
+      ? timelineData
+      : timelineData.filter((d) => d.shift.toLowerCase() === activeShiftFilter);
+
+  if (loading) {
+    return (
+      <SectionCard title="24-Hour Shift Telemetry & Carbon Profile">
+        <div className="h-48 flex items-center justify-center text-xs text-slate-400 font-mono">
+          Loading shift telemetry from PostgreSQL...
+        </div>
+      </SectionCard>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <SectionCard
+        title="24-Hour Shift Telemetry & Operational Baseline"
+        subtitle="Expected plant baseline vs actual measured telemetry"
+      >
+        <div className="h-44 border border-dashed border-[#232c3d] rounded-lg flex flex-col items-center justify-center text-center p-6 bg-[#0f1219]/60">
+          <Activity className="w-8 h-8 text-slate-600 mb-2" />
+          <h5 className="text-xs font-semibold text-slate-300">Telemetry Timeline Unavailable</h5>
+          <p className="text-[11px] text-slate-500 max-w-sm mt-1">
+            Ingest operational time-series data to render the 24-hour diurnal load vs baseline curve.
+          </p>
+        </div>
+      </SectionCard>
+    );
+  }
+
+  const currentPoint = timelineData[timelineData.length - 1] || timelineData[0];
+  const isAnomaly = currentPoint.leak > 25 || !!topLeak;
 
   return (
     <SectionCard
-      title="24-Hour Shift Telemetry & Carbon Bleed Profile"
+      title="24-Hour Shift Telemetry & Operational Baseline"
       subtitle="Real-time diurnal emissions tracking: Expected plant baseline vs actual telemetry, pinpointing off-hours leak anomalies"
       badge={
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold flex items-center gap-1 animate-pulse">
-          <AlertTriangle className="w-3 h-3" /> Night Shift Anomaly Active
-        </span>
+        isAnomaly ? (
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold flex items-center gap-1 animate-pulse">
+            <AlertTriangle className="w-3 h-3" /> Anomaly Variance Detected
+          </span>
+        ) : (
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+            Nominal Tracking
+          </span>
+        )
       }
       action={
         <div className="flex items-center gap-1.5 bg-[#121620] p-1 rounded-lg border border-[#202737]">
-          <button
-            onClick={() => setActiveShiftFilter('all')}
-            className={`px-2 py-1 text-[11px] font-mono rounded transition-colors ${
-              activeShiftFilter === 'all'
-                ? 'bg-emerald-600 text-white font-semibold'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            24h Diurnal
-          </button>
-          <button
-            onClick={() => setActiveShiftFilter('night')}
-            className={`px-2 py-1 text-[11px] font-mono rounded transition-colors ${
-              activeShiftFilter === 'night'
-                ? 'bg-red-900/80 text-red-200 font-semibold border border-red-700'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Night Leak Zone (22:00-06:00)
-          </button>
-          <button
-            onClick={() => setActiveShiftFilter('morning')}
-            className={`px-2 py-1 text-[11px] font-mono rounded transition-colors ${
-              activeShiftFilter === 'morning'
-                ? 'bg-slate-700 text-white font-semibold'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Day Shift
-          </button>
+          {['all', 'night', 'morning'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setActiveShiftFilter(mode)}
+              className={`px-2 py-1 text-[11px] font-mono rounded transition-colors ${
+                activeShiftFilter === mode
+                  ? mode === 'night'
+                    ? 'bg-red-900/80 text-red-200 font-semibold'
+                    : 'bg-emerald-600 text-white font-semibold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {mode === 'all' ? '24h Diurnal' : mode === 'night' ? 'Night Shift' : 'Day Shift'}
+            </button>
+          ))}
         </div>
       }
     >
@@ -100,27 +157,33 @@ export function ShiftTelemetryChart() {
         {/* Real-time telemetry metric badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-[#12161f] border border-[#1e2535] text-xs font-mono">
           <div>
-            <span className="text-[10px] text-slate-400 uppercase block">Current Shift</span>
-            <span className="text-white font-bold text-sm block">Night (22:00 — 06:00)</span>
-            <span className="text-[10px] text-slate-500">Scheduled idle/cooling</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Active Shift</span>
+            <span className="text-white font-bold text-sm block">{currentPoint.shift} Shift</span>
+            <span className="text-[10px] text-slate-500">Live Operating Window</span>
           </div>
 
           <div>
-            <span className="text-[10px] text-slate-400 uppercase block">Expected Baseline</span>
-            <span className="text-slate-300 font-bold text-sm block">310 kgCO₂e/hr</span>
-            <span className="text-[10px] text-slate-500">Nominal idle holding</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Baseline Average</span>
+            <span className="text-slate-300 font-bold text-sm block">{currentPoint.baseline} kgCO₂e/hr</span>
+            <span className="text-[10px] text-slate-500">Nominal Process Load</span>
           </div>
 
           <div>
-            <span className="text-[10px] text-slate-400 uppercase block">Measured Emissions</span>
-            <span className="text-red-400 font-bold text-sm block">430 kgCO₂e/hr</span>
-            <span className="text-[10px] text-red-400 font-semibold">+38.7% Over Baseline</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Measured Telemetry</span>
+            <span className="text-red-400 font-bold text-sm block">{currentPoint.actual} kgCO₂e/hr</span>
+            <span className="text-[10px] text-red-400 font-semibold">
+              {currentPoint.actual >= currentPoint.baseline ? `+${Math.round(((currentPoint.actual - currentPoint.baseline) / Math.max(1, currentPoint.baseline)) * 100)}% Over Baseline` : 'Within Normal Range'}
+            </span>
           </div>
 
           <div>
-            <span className="text-[10px] text-slate-400 uppercase block">Avoidable Bleed Rate</span>
-            <span className="text-amber-400 font-bold text-sm block">~120 kgCO₂e/hr</span>
-            <span className="text-[10px] text-amber-400 font-medium">Compressor 03 unloader</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Monitored Asset</span>
+            <span className="text-amber-400 font-bold text-sm block truncate">
+              {topLeak?.equipment || 'Primary Industrial Units'}
+            </span>
+            <span className="text-[10px] text-amber-400/80 font-medium">
+              {topLeak ? `${topLeak.deviation_percent}% deviation` : 'Baseline synchronized'}
+            </span>
           </div>
         </div>
 
@@ -155,7 +218,6 @@ export function ShiftTelemetryChart() {
                 axisLine={{ stroke: '#222c3d' }}
                 tickLine={false}
                 unit=" kg"
-                domain={[200, 700]}
               />
 
               <Tooltip
@@ -166,54 +228,27 @@ export function ShiftTelemetryChart() {
                       <div className="bg-[#121620] border border-[#2c374d] p-3 rounded-lg shadow-xl text-xs font-mono space-y-1">
                         <div className="flex items-center justify-between gap-3 text-slate-300 border-b border-[#232c3d] pb-1 font-bold">
                           <span>{label} ({dataPoint.shift} Shift)</span>
-                          {dataPoint.leak > 30 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">
-                              Leak Active
-                            </span>
-                          )}
                         </div>
                         <div className="flex items-center justify-between gap-4 text-emerald-400">
-                          <span>Expected Baseline:</span>
+                          <span>Baseline:</span>
                           <strong>{dataPoint.baseline} kgCO₂e/hr</strong>
                         </div>
                         <div className="flex items-center justify-between gap-4 text-red-400">
-                          <span>Actual Measured:</span>
+                          <span>Measured:</span>
                           <strong>{dataPoint.actual} kgCO₂e/hr</strong>
                         </div>
-                        <div className="flex items-center justify-between gap-4 text-amber-300 pt-1 border-t border-[#1e2736]">
-                          <span>Avoidable Bleed:</span>
-                          <strong>+{dataPoint.leak} kgCO₂e/hr</strong>
-                        </div>
+                        {dataPoint.leak > 0 && (
+                          <div className="flex items-center justify-between gap-4 text-amber-300 pt-1 border-t border-[#1e2736]">
+                            <span>Variance:</span>
+                            <strong>+{dataPoint.leak} kgCO₂e/hr</strong>
+                          </div>
+                        )}
                       </div>
                     );
                   }
                   return null;
                 }}
               />
-
-              {/* Night leak highlight bands (00:00 to 06:00 and 22:00 to 23:00) */}
-              {activeShiftFilter === 'all' && (
-                <>
-                  <ReferenceArea
-                    x1="00:00"
-                    x2="05:00"
-                    fill="#ef4444"
-                    fillOpacity={0.08}
-                    stroke="#ef4444"
-                    strokeDasharray="3 3"
-                    strokeOpacity={0.3}
-                  />
-                  <ReferenceArea
-                    x1="22:00"
-                    x2="23:00"
-                    fill="#ef4444"
-                    fillOpacity={0.08}
-                    stroke="#ef4444"
-                    strokeDasharray="3 3"
-                    strokeOpacity={0.3}
-                  />
-                </>
-              )}
 
               <Area
                 type="monotone"
@@ -239,7 +274,7 @@ export function ShiftTelemetryChart() {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend & Shift Context Footer */}
+        {/* Legend */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#1e2637] text-xs">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-slate-300">
@@ -255,7 +290,9 @@ export function ShiftTelemetryChart() {
           <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
             <Info className="w-3.5 h-3.5 text-slate-500" />
             <span>
-              Shaded red region indicates Compressor 03 unloader leak (+45% idle draw) during non-production hours.
+              {topLeak
+                ? `Active anomaly: ${topLeak.equipment} (${topLeak.reason || 'Variance observed'})`
+                : 'Diurnal profile derived dynamically from ingested operational timestamps.'}
             </span>
           </div>
         </div>

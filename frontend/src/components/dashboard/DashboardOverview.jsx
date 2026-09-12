@@ -128,7 +128,7 @@ export function DashboardOverview({ data }) {
           <ReductionPotential recommendation={data.top_recommended_action} />
         </div>
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col">
-          <EmissionBreakdown sources={data.emission_sources} />
+          <EmissionBreakdown sources={data.emission_sources} intensity={data.metrics?.emissions_intensity} />
         </div>
       </div>
 
@@ -150,25 +150,29 @@ export function DashboardOverview({ data }) {
               1. WHERE are the leaks?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Carbon Leak Points Registry
+              Carbon Leak Registry
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              7 flagged equipment anomalies →
+              {data.anomalies_summary?.active_anomalies > 0
+                ? `${data.anomalies_summary.active_anomalies} flagged equipment anomalies →`
+                : 'No active anomalies detected →'}
             </span>
           </Link>
 
           <Link
-            to="/leaks/LEAK-01"
+            to="/leaks"
             className="p-3 rounded bg-[#151923] border border-[#222938] hover:border-amber-600/60 transition-colors group"
           >
             <span className="text-[10px] font-mono text-amber-400 font-bold uppercase block mb-1">
               2. WHY were they flagged?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Compressor 03 Diagnostics
+              Anomaly Diagnostics
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              +45% off-hours unloader bleed →
+              {data.top_hotspots?.[0]?.equipment
+                ? `${data.top_hotspots[0].equipment} (${data.top_hotspots[0].share_percent}% share) →`
+                : 'Root-cause baseline deviation →'}
             </span>
           </Link>
 
@@ -180,10 +184,12 @@ export function DashboardOverview({ data }) {
               3. WHAT can fix them?
             </span>
             <span className="text-xs font-semibold text-slate-200 group-hover:text-white block">
-              Circular Alternatives
+              Circular Interventions
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              4 costed engineering packages →
+              {data.top_recommended_action?.title
+                ? `${data.top_recommended_action.title} →`
+                : 'Costed engineering alternatives →'}
             </span>
           </Link>
 
@@ -198,7 +204,9 @@ export function DashboardOverview({ data }) {
               What-If Simulator & ROI
             </span>
             <span className="text-[11px] text-slate-400 mt-1 block">
-              ₹4.2L/yr savings & 1.55 yr payback →
+              {data.top_recommended_action?.annual_savings
+                ? `₹${(data.top_recommended_action.annual_savings / 100000).toFixed(1)}L/yr savings (${data.top_recommended_action.payback_years} yr payback) →`
+                : 'Model intervention bundles →'}
             </span>
           </Link>
         </div>

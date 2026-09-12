@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { isMockModeActive, setRuntimeMockMode } from '../services/apiClient';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { getFacility } from '../services/facilityApi';
+import { getEmissionsSummary } from '../services/emissionsApi';
 
 const FacilityContext = createContext(null);
 
@@ -15,7 +16,7 @@ export function FacilityProvider({ children }) {
         if (u.facility_id) return u.facility_id;
       }
     } catch {}
-    return 'FAC-8842';
+    return 1;
   });
 
   const [facilityName, setFacilityName] = useState(() => {
@@ -26,10 +27,11 @@ export function FacilityProvider({ children }) {
         if (u.company_name) return u.company_name;
       }
     } catch {}
-    return 'Apex Metals & Casting Unit 4';
+    return 'Industrial Facility';
   });
 
-  const [isMockMode, setIsMockMode] = useState(isMockModeActive());
+  const [facilityDetails, setFacilityDetails] = useState(null);
+  const [facilityMetrics, setFacilityMetrics] = useState(null);
   const [liveApiError, setLiveApiError] = useState(null);
 
   // Sync state when authenticated user updates
@@ -42,15 +44,35 @@ export function FacilityProvider({ children }) {
     }
   }, [user]);
 
-  const toggleMockMode = (forceValue) => {
-    const nextMode = forceValue !== undefined ? forceValue : !isMockMode;
-    setIsMockMode(nextMode);
-    setRuntimeMockMode(nextMode);
-    if (nextMode) {
-      // clear error when manually switching to demo mode
+  const refreshFacilityData = useCallback(async () => {
+    if (!currentFacilityId) return;
+    try {
+      const [facRes, emissRes] = await Promise.allSettled([
+        getFacility(currentFacilityId),
+        getEmissionsSummary(currentFacilityId),
+      ]);
+
+      if (facRes.status === 'fulfilled' && facRes.value?.data) {
+        const fac = facRes.value.data;
+        setFacilityDetails(fac);
+        if (fac.business_name) {
+          setFacilityName(fac.business_name);
+        }
+      }
+
+      if (emissRes.status === 'fulfilled' && emissRes.value?.data) {
+        setFacilityMetrics(emissRes.value.data);
+      }
+
       setLiveApiError(null);
+    } catch (err) {
+      setLiveApiError(err.message);
     }
-  };
+  }, [currentFacilityId]);
+
+  useEffect(() => {
+    refreshFacilityData();
+  }, [refreshFacilityData]);
 
   return (
     <FacilityContext.Provider
@@ -59,8 +81,9 @@ export function FacilityProvider({ children }) {
         setCurrentFacilityId,
         facilityName,
         setFacilityName,
-        isMockMode,
-        toggleMockMode,
+        facilityDetails,
+        facilityMetrics,
+        refreshFacilityData,
         liveApiError,
         setLiveApiError,
       }}

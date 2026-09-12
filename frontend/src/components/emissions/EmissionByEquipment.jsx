@@ -25,8 +25,8 @@ export function EmissionByEquipment({ equipment = [] }) {
             />
             <Bar dataKey="emissions_kg" radius={[0, 4, 4, 0]}>
               {chartData.map((entry) => {
-                const isCritical = entry.displayName?.includes('Compressor 03');
-                const isAmber = entry.displayName?.includes('Furnace Line 2') || entry.displayName?.includes('Boiler');
+                const isCritical = entry.is_anomaly || entry.flagged || entry.percentage >= 30;
+                const isAmber = !isCritical && entry.percentage >= 15;
                 return (
                   <Cell
                     key={entry.displayName}

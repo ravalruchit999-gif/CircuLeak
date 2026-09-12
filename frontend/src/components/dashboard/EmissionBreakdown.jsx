@@ -3,7 +3,7 @@ import { SectionCard } from '../ui/SectionCard';
 import { Gauge, Zap, Flame, Fuel, Info, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export function EmissionBreakdown({ sources = [] }) {
+export function EmissionBreakdown({ sources = [], intensity = 0 }) {
   const colors = ['#3b82f6', '#f97316', '#eab308'];
   const icons = [Zap, Flame, Fuel];
   const factors = ['0.82 kgCO₂e/kWh', '2.04 kgCO₂e/SCM', '2.68 kgCO₂e/Liter'];
@@ -42,7 +42,7 @@ export function EmissionBreakdown({ sources = [] }) {
                       {src.name}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
-                      Factor: {factors[i]}
+                      Factor: {factors[i] || '0.82 kgCO₂e/kWh'}
                     </span>
                   </div>
                 </div>
@@ -81,19 +81,35 @@ export function EmissionBreakdown({ sources = [] }) {
         </div>
 
         {/* Production Intensity Callout */}
-        <div className="p-3 rounded-lg bg-[#12161f] border border-[#202737] flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2">
-            <Gauge className="w-4 h-4 text-amber-400 shrink-0" />
-            <div>
-              <span className="text-slate-200 font-semibold block">Production Intensity</span>
-              <span className="text-[10px] text-slate-400">Sector benchmark: 85 kg/t</span>
+        {intensity > 0 ? (
+          <div className="p-3 rounded-lg bg-[#12161f] border border-[#202737] flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <Gauge className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div>
+                <span className="text-slate-200 font-semibold block">Production Intensity</span>
+                <span className="text-[10px] text-slate-400">Measured specific footprint</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="font-bold text-white block">{intensity} kgCO₂e / unit</span>
+              <span className="text-[10px] text-emerald-400 font-semibold">Active Record</span>
             </div>
           </div>
-          <div className="text-right">
-            <span className="font-bold text-white block">101 kgCO₂e / ton</span>
-            <span className="text-[10px] text-amber-400 font-semibold">+18.8% Gap</span>
+        ) : (
+          <div className="p-3 rounded-lg bg-[#12161f] border border-[#202737] flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <Gauge className="w-4 h-4 text-slate-400 shrink-0" />
+              <div>
+                <span className="text-slate-200 font-semibold block">Energy Footprint Distribution</span>
+                <span className="text-[10px] text-slate-400">{sources.length} operational sources</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-slate-300 font-bold block">Verified</span>
+              <span className="text-[10px] text-slate-500">Live Telemetry</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </SectionCard>
   );

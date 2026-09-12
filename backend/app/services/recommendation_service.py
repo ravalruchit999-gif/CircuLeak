@@ -63,10 +63,15 @@ class RecommendationService:
     def get_facility_recommendations(db: Session, facility_id: int) -> List[Dict[str, Any]]:
         """
         Match circular interventions to facility's active equipment, hotspots, and anomalies.
+        If no telemetry or anomalies exist, returns empty list (no fake recommendations).
         """
         summary = EmissionService.calculate_summary(db, facility_id)
         hotspots = LeakService.get_structural_hotspots(db, facility_id).get("hotspots", [])
         anomalies = LeakService.get_anomalies(db, facility_id).get("anomalies", [])
+
+        # Strict: never generate fake recommendations when facility has zero data or anomalies
+        if summary.get("total_emissions", 0) == 0 or (not hotspots and not anomalies):
+            return []
 
         # Build query context from top hotspots and anomalies
         top_eqs = [h["equipment"] for h in hotspots[:4]]

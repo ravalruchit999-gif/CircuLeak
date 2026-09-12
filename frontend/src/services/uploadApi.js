@@ -1,51 +1,67 @@
 import { apiRequest } from './apiClient';
 import { ENDPOINTS, toApiFacilityId } from '../constants/api';
 
-export async function uploadProcessCsv(file, facilityId = 'FAC-8842') {
-  // Mock upload response
-  const mockUploadResult = {
-    file_name: file ? file.name : 'process_telemetry_batch_q1.csv',
-    facility_id: facilityId,
-    rows_processed: 8760,
-    rows_accepted: 8742,
-    rows_rejected: 18,
-    validation_status: 'SUCCESS',
-    timestamp_range: {
-      start: '2026-01-01 00:00',
-      end: '2026-02-28 23:59',
-    },
-    message: 'Data validated and successfully ingested into CircuLeak Intelligence Engine.',
-  };
-
-  // When live, send multipart form data with integer facility_id for FastAPI
+/**
+ * Inspect uploaded CSV or XLSX file headers and suggest column mappings
+ * @param {File} file
+ * @returns {Promise<any>}
+ */
+export async function inspectIndustrialDataset(file) {
   const formData = new FormData();
-  if (file) formData.append('file', file);
-  formData.append('facility_id', toApiFacilityId(facilityId));
+  formData.append('file', file);
 
-  const res = await apiRequest(ENDPOINTS.UPLOAD_CSV, {
+  return apiRequest(ENDPOINTS.UPLOAD_INSPECT, {
     method: 'POST',
     body: formData,
-    mockData: mockUploadResult,
+  });
+}
+
+/**
+ * Process industrial dataset with custom or verified column mapping
+ * @param {File} file
+ * @param {number|string} facilityId
+ * @param {object} customMapping
+ * @returns {Promise<any>}
+ */
+export async function processIndustrialDataset(file, facilityId, customMapping = null) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (facilityId) {
+    formData.append('facility_id', toApiFacilityId(facilityId));
+  }
+  if (customMapping && Object.keys(customMapping).length > 0) {
+    formData.append('mapping', JSON.stringify(customMapping));
+  }
+
+  const res = await apiRequest(ENDPOINTS.UPLOAD_PROCESS, {
+    method: 'POST',
+    body: formData,
   });
 
   if (res.data) {
     const raw = res.data;
-    const accepted = raw.rows_valid ?? raw.rows_accepted ?? raw.rows_processed ?? 672;
     res.data = {
       ...raw,
-      file_name: file ? file.name : (raw.file_name || 'process_telemetry.csv'),
+      file_name: file ? file.name : (raw.filename || 'telemetry.csv'),
       facility_id: raw.facility_id ?? facilityId,
-      rows_processed: raw.rows_processed ?? accepted,
-      rows_accepted: accepted,
-      rows_rejected: raw.rows_rejected ?? 0,
-      validation_status: raw.validation_status || (raw.status === 'success' ? 'SUCCESS' : raw.status || 'SUCCESS'),
+      rows_processed: raw.rows_processed ?? raw.row_count ?? 0,
+      rows_accepted: raw.rows_valid ?? raw.valid_row_count ?? 0,
+      rows_rejected: raw.rows_rejected ?? raw.invalid_row_count ?? 0,
+      validation_status: raw.status === 'success' || raw.status === 'completed' ? 'SUCCESS' : raw.status,
       timestamp_range: raw.timestamp_range || {
-        start: '2026-02-01 00:00',
-        end: '2026-02-28 23:00',
+        start: raw.date_start || 'N/A',
+        end: raw.date_end || 'N/A',
       },
-      message: raw.message || `Successfully processed and ingested ${accepted} telemetry records into CircuLeak Intelligence Pipeline.`,
+      message: raw.message || `Successfully ingested ${raw.rows_valid || 0} telemetry rows.`,
     };
   }
 
   return res;
+}
+
+/**
+ * Legacy wrapper for simple upload
+ */
+export async function uploadProcessCsv(file, facilityId) {
+  return processIndustrialDataset(file, facilityId, null);
 }

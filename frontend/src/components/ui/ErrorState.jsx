@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertTriangle, RefreshCw, Database } from 'lucide-react';
+import { AlertTriangle, RefreshCw, UploadCloud } from 'lucide-react';
 import { Button } from './Button';
-import { useFacilityContext } from '../../context/FacilityContext';
+import { Link } from 'react-router-dom';
 
 export function ErrorState({
   title = 'API Communication Error',
@@ -9,8 +9,6 @@ export function ErrorState({
   onRetry,
   className = '',
 }) {
-  const { toggleMockMode } = useFacilityContext();
-
   return (
     <div className={`p-6 rounded bg-red-950/20 border border-red-900/50 ${className}`}>
       <div className="flex items-start gap-4">
@@ -29,15 +27,16 @@ export function ErrorState({
                 Retry API Request
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => toggleMockMode(true)}
-              icon={Database}
-              className="border-red-800/60 text-red-200 hover:bg-red-900/20"
-            >
-              Switch to Offline Demo Data
-            </Button>
+            <Link to="/upload">
+              <Button
+                variant="outline"
+                size="sm"
+                icon={UploadCloud}
+                className="border-[#2b364c] text-slate-300 hover:bg-slate-800"
+              >
+                Upload Operational Telemetry
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

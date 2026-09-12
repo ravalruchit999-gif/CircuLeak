@@ -1,31 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useFacilityContext } from '../context/FacilityContext';
 import { getFacility, createOrUpdateFacility } from '../services/facilityApi';
 
 export function useFacility() {
-  const { currentFacilityId, isMockMode, setLiveApiError } = useFacilityContext();
+  const { currentFacilityId } = useFacilityContext();
   const [facility, setFacility] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchFacility = async () => {
+  const fetchFacility = useCallback(async () => {
+    if (!currentFacilityId) {
+      setFacility(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const response = await getFacility(currentFacilityId);
       setFacility(response.data);
-      setLiveApiError(null);
     } catch (err) {
       setError(err.message || 'Failed to load facility profile');
-      setLiveApiError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentFacilityId]);
 
   useEffect(() => {
     fetchFacility();
-  }, [currentFacilityId, isMockMode]);
+  }, [fetchFacility]);
 
   const updateProfile = async (updatedData) => {
     try {

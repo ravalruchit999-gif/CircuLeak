@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useAudit } from '../hooks/useAudit';
 import { AuditSummary } from '../components/audit/AuditSummary';
 import { AuditFindings } from '../components/audit/AuditFindings';
 import { AuditRecommendations } from '../components/audit/AuditRecommendations';
 import { ReportActions } from '../components/audit/ReportActions';
 import { SectionCard } from '../components/ui/SectionCard';
-import { CheckCircle2, ShieldCheck, Download } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Download, FileText } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 
@@ -34,6 +35,26 @@ export function AuditReport() {
     );
   }
 
+  const hasData = data && data.has_data;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Industrial Decarbonization Audit Memorandum"
+          subtitle="Formal consulting memorandum summarizing plant baseline, verified carbon leaks, circular solutions, and capital payback"
+        />
+        <EmptyState
+          icon={FileText}
+          title="Audit Memorandum Unavailable"
+          description="Executive audit certification requires verified operational logs. Ingest electricity meter readings, fuel batch logs, and machinery telemetry to compile this memorandum."
+          actionText="Upload Facility Telemetry"
+          actionLink="/upload"
+        />
+      </div>
+    );
+  }
+
   const handlePrint = () => {
     window.print();
   };
@@ -50,7 +71,7 @@ export function AuditReport() {
         subtitle="Formal consulting memorandum summarizing plant baseline, verified carbon leaks, circular solutions, and capital payback"
         badge={
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-            Certified Audit
+            {data.regulatory_ccts_standing || 'Verified Audit'}
           </span>
         }
         actions={
@@ -80,7 +101,9 @@ export function AuditReport() {
       <AuditSummary audit={data} />
 
       {/* Verified Anomaly Findings */}
-      <AuditFindings findings={data?.key_findings} />
+      {data.key_findings && data.key_findings.length > 0 && (
+        <AuditFindings findings={data.key_findings} />
+      )}
 
       {/* Recommendations & Investment Schedule */}
       <AuditRecommendations packageDetails={data?.recommended_package} />
@@ -103,75 +126,45 @@ export function AuditReport() {
         </div>
       </SectionCard>
 
-      {/* Full Report Preview Modal */}
-      <Modal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        title="Decarbonization Audit Report Document Preview"
-        maxWidth="max-w-3xl"
-      >
-        <div className="p-4 bg-white text-slate-900 rounded space-y-4 font-sans text-xs">
-          <div className="border-b border-slate-300 pb-3 flex justify-between items-start">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 m-0">CIRCULEAK AUDIT MEMORANDUM</h2>
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block mt-0.5">
-                Ref: {data?.audit_id} • Prepared for Executive Board
-              </span>
+      {/* PDF Download Preview Modal */}
+      {isPreviewOpen && (
+        <Modal
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          title="Generated Decarbonization Audit Document"
+        >
+          <div className="space-y-4 text-xs">
+            <p className="text-slate-300">
+              The formal executive decarbonization memorandum has been compiled with ISO 14064 GHG verification standards and national CEA emission factors.
+            </p>
+
+            <div className="p-3 rounded bg-[#121620] border border-[#232c3d] font-mono text-[11px] space-y-1">
+              <div><strong>Document Reference:</strong> {data?.audit_id || 'AUD-2026'}</div>
+              <div><strong>Facility:</strong> {data?.facility_name}</div>
+              <div><strong>Certified Auditor:</strong> {data?.lead_auditor}</div>
+              <div><strong>Format:</strong> High-Resolution Consulting PDF (12 Sections)</div>
             </div>
-            <div className="text-right">
-              <span className="font-bold text-slate-800">{data?.facility_name}</span>
-              <span className="text-[10px] text-slate-500 block">{data?.audit_date}</span>
-            </div>
-          </div>
 
-          <div>
-            <h4 className="font-bold text-slate-900 uppercase text-[11px] mb-1">1. Executive Summary</h4>
-            <p className="text-slate-700 leading-relaxed text-justify">{data?.executive_summary}</p>
-          </div>
-
-          <div>
-            <h4 className="font-bold text-slate-900 uppercase text-[11px] mb-1">2. Core Leak Findings</h4>
-            <ul className="list-disc pl-4 space-y-1 text-slate-700">
-              {data?.key_findings?.map((f, i) => (
-                <li key={i}>
-                  <strong>{f.category}:</strong> {f.finding} ({f.impact})
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold text-slate-900 uppercase text-[11px] mb-1">3. Capital Recovery Schedule</h4>
-            <div className="grid grid-cols-4 gap-2 p-2 bg-slate-100 rounded text-center font-mono text-[11px]">
-              <div>
-                <span className="text-slate-500 text-[10px] block">Capex</span>
-                <strong>₹6,50,000</strong>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[10px] block">Annual Savings</span>
-                <strong className="text-emerald-700">₹4,20,000</strong>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[10px] block">Payback</span>
-                <strong>1.55 yrs</strong>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[10px] block">CO₂ Cut</span>
-                <strong className="text-emerald-700">-3,150 kg/day</strong>
-              </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(false)}>
+                Close Preview
+              </Button>
+              {reportResult?.download_url && (
+                <a
+                  href={reportResult.download_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                >
+                  <Button variant="primary" size="sm" icon={Download}>
+                    Download Document PDF
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
-
-          <div className="pt-3 border-t border-slate-300 flex justify-end gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setIsPreviewOpen(false)}>
-              Close
-            </Button>
-            <Button variant="primary" size="sm" onClick={handlePrint} icon={Download}>
-              Print / Save PDF
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 }

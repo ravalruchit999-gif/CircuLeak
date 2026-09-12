@@ -12,13 +12,15 @@ from app.api.routes import (
     benchmark,
     circularity,
     audit,
-    report
+    report,
+    data_quality
 )
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router)
 api_router.include_router(admin.router)
+api_router.include_router(data_quality.router)
 api_router.include_router(facility.router)
 api_router.include_router(upload.router)
 api_router.include_router(emissions.router)

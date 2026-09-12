@@ -157,7 +157,7 @@ export function Login() {
                   Facility Manager
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono block truncate">
-                  Apex Metals Unit 4
+                  Operational Facility
                 </span>
               </button>
 

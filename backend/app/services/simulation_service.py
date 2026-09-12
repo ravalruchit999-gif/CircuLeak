@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 try:
     from app.models.simulation import Simulation
     from app.services.emission_service import EmissionService
+    from app.services.recommendation_service import RecommendationService
     from app.data.recommendations import DEFAULT_RECOMMENDATIONS
     from app.utils.calculations import calculate_payback
 except (ImportError, ModuleNotFoundError):
     from ..models.simulation import Simulation
     from .emission_service import EmissionService
+    from .recommendation_service import RecommendationService
     from ..data.recommendations import DEFAULT_RECOMMENDATIONS
     from ..utils.calculations import calculate_payback
 
@@ -20,6 +22,21 @@ class SimulationService:
         """
         summary = EmissionService.calculate_summary(db, facility_id)
         baseline_emissions = summary["total_emissions"]
+
+        if baseline_emissions == 0:
+            return {
+                "facility_id": facility_id,
+                "has_data": False,
+                "baseline_emissions": 0.0,
+                "projected_emissions": 0.0,
+                "total_reduction": 0.0,
+                "reduction_percent": 0.0,
+                "investment": 0.0,
+                "annual_savings": 0.0,
+                "payback_years": 0.0,
+                "five_year_savings": 0.0,
+                "selected_interventions": []
+            }
 
         rec_lookup = {r["id"]: r for r in DEFAULT_RECOMMENDATIONS}
 
@@ -43,7 +60,6 @@ class SimulationService:
                 total_investment += rec["estimated_cost_inr"]
                 total_annual_savings += rec["annual_savings_inr"]
 
-        # Apply interaction damping factor if multiple interventions overlap (realistic industrial thermodynamics)
         count = len(valid_interventions)
         interaction_factor = 1.0 if count <= 1 else max(0.85, 1.0 - (count * 0.03))
         effective_reduction = round(min(baseline_emissions * 0.85, total_co2_reduction_raw * interaction_factor), 2)
@@ -72,6 +88,7 @@ class SimulationService:
 
         return {
             "facility_id": facility_id,
+            "has_data": True,
             "baseline_emissions": baseline_emissions,
             "projected_emissions": projected_emissions,
             "total_reduction": effective_reduction,
@@ -86,29 +103,45 @@ class SimulationService:
     @staticmethod
     def compare_scenarios(db: Session, facility_id: int) -> Dict[str, Any]:
         """
-        Generate 3 predefined automated scenarios:
-        1. Cost Saver (low capex, fast payback)
-        2. Balanced (optimal mix)
-        3. Maximum Decarbonization (maximum CO2 reduction)
+        Generate 3 predefined automated scenarios.
+        If facility has zero telemetry, returns empty scenarios list (no fake simulation).
         """
         summary = EmissionService.calculate_summary(db, facility_id)
         baseline = summary["total_emissions"]
 
+        if baseline == 0:
+            return {
+                "facility_id": facility_id,
+                "has_data": False,
+                "baseline_emissions_kg": 0.0,
+                "available_interventions": [],
+                "scenarios": []
+            }
+
+        # Retrieve interventions matching this facility
+        facility_recs = RecommendationService.get_facility_recommendations(db, facility_id)
+        available_ids = [r["id"] for r in facility_recs] if facility_recs else [
+            "air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation", "whr_boiler_flue"
+        ]
+
         scenarios_definitions = [
             {
+                "id": "scen_cost_saver",
                 "name": "Cost Saver",
                 "focus": "Low initial capex, rapid payback (< 1.5 yrs) through leak fixes and controls",
-                "ids": ["air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation"]
+                "ids": [i for i in ["air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation"] if i in available_ids or len(available_ids) < 3]
             },
             {
+                "id": "scen_balanced",
                 "name": "Balanced",
                 "focus": "Optimal balance of strong CO2 reduction, solid financial ROI, and proven feasibility",
-                "ids": ["whr_boiler_flue", "vfd_compressor_retrofit", "condensate_steam_recovery", "air_leak_audit_repair"]
+                "ids": [i for i in ["whr_boiler_flue", "vfd_compressor_retrofit", "condensate_steam_recovery", "air_leak_audit_repair"] if i in available_ids or len(available_ids) < 3]
             },
             {
+                "id": "scen_max_decarb",
                 "name": "Maximum Decarbonization",
                 "focus": "Aggressive decarbonization using rooftop solar PV, fuel switching, and heat recovery",
-                "ids": ["rooftop_solar_pv", "fuel_switch_biomass_briquettes", "whr_boiler_flue", "vfd_compressor_retrofit"]
+                "ids": [i for i in ["rooftop_solar_pv", "fuel_switch_biomass_briquettes", "whr_boiler_flue", "vfd_compressor_retrofit"] if i in available_ids or len(available_ids) < 3]
             }
         ]
 
@@ -116,6 +149,7 @@ class SimulationService:
         for s in scenarios_definitions:
             sim_res = SimulationService.simulate_what_if(db, facility_id, s["ids"])
             results.append({
+                "id": s["id"],
                 "scenario_name": s["name"],
                 "focus_strategy": s["focus"],
                 "emission_reduction": sim_res["total_reduction"],
@@ -128,6 +162,8 @@ class SimulationService:
 
         return {
             "facility_id": facility_id,
+            "has_data": True,
             "baseline_emissions_kg": baseline,
+            "available_interventions": facility_recs,
             "scenarios": results
         }

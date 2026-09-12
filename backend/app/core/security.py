@@ -81,6 +81,31 @@ def require_admin_user(current_user: Optional[User] = Depends(get_current_user))
     return current_user
 
 
+def get_authorized_facility_id(
+    facility_id: Optional[int] = None,
+    current_user: Optional[User] = Depends(get_current_user)
+) -> int:
+    """
+    Enforce strict multi-tenancy isolation:
+    - If user is non-admin, always scope queries to current_user.facility_id.
+      Attempting to access another facility's ID triggers HTTP 403 Forbidden.
+    - Admins may inspect specific facilities across the tenancy.
+    """
+    if current_user:
+        if current_user.role == "admin":
+            return facility_id or current_user.facility_id or 1
+        user_fac = current_user.facility_id
+        if not user_fac:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User account is not bound to any facility.")
+        if facility_id is not None and int(facility_id) != int(user_fac):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Unauthorized: You cannot access or modify telemetry belonging to another facility."
+            )
+        return user_fac
+    return facility_id or 1
+
+
 def sanitize_filename(filename: str) -> str:
     """Sanitize uploaded filenames to prevent path traversal attacks."""
     clean_name = os.path.basename(filename)
@@ -89,6 +114,10 @@ def sanitize_filename(filename: str) -> str:
 
 
 def validate_csv_extension(filename: str) -> bool:
-    """Validate that uploaded file is a CSV."""
-    return filename.lower().endswith(".csv")
+    """Validate that uploaded file is a supported spreadsheet (.csv, .xlsx, .xls)."""
+    return filename.lower().endswith((".csv", ".xlsx", ".xls"))
+
+
+def validate_dataset_extension(filename: str) -> bool:
+    return validate_csv_extension(filename)
 

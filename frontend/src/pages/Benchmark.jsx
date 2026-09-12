@@ -2,13 +2,14 @@ import React from 'react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { LoadingState } from '../components/ui/LoadingState';
 import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useBenchmark } from '../hooks/useBenchmark';
 import { BenchmarkMetrics } from '../components/benchmark/BenchmarkMetrics';
 import { BenchmarkOverview } from '../components/benchmark/BenchmarkOverview';
 import { BenchmarkComparison } from '../components/benchmark/BenchmarkComparison';
 import { PeerCluster } from '../components/benchmark/PeerCluster';
 import { Button } from '../components/ui/Button';
-import { RefreshCw, FileText } from 'lucide-react';
+import { RefreshCw, FileText, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Benchmark() {
@@ -32,15 +33,45 @@ export function Benchmark() {
     );
   }
 
+  const hasData = industryBenchmark && industryBenchmark.has_data && industryBenchmark.facility_intensity > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Industry Benchmark & Machine-Learned Peer Clustering"
+          subtitle="Evaluating carbon intensity (kgCO₂e / metric ton product) against regional manufacturing cohort"
+        />
+        <EmptyState
+          icon={BarChart3}
+          title="Benchmarking Comparison Awaiting Operational Metrics"
+          description="Specific emission intensity (kgCO₂e per unit output) and peer cohort comparisons require ingested electricity, fuel, and production tonnage records."
+          actionText="Upload Telemetry Dataset"
+          actionLink="/upload"
+        />
+      </div>
+    );
+  }
+
+  const diffPct = industryBenchmark.difference_percent;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Industry Benchmark & Machine-Learned Peer Clustering"
-        subtitle="Evaluating carbon intensity (kgCO₂e / metric ton product) against regional alloy casting manufacturing cohort"
+        subtitle="Evaluating carbon intensity (kgCO₂e / metric ton product) against regional manufacturing cohort"
         badge={
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-            Intensity Gap: +18.8%
-          </span>
+          diffPct !== undefined ? (
+            <span
+              className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                diffPct > 0
+                  ? 'bg-amber-950 text-amber-300 border-amber-800'
+                  : 'bg-emerald-950 text-emerald-300 border-emerald-800'
+              }`}
+            >
+              Variance: {diffPct > 0 ? `+${diffPct}%` : `${diffPct}%`} vs Average
+            </span>
+          ) : null
         }
         actions={
           <div className="flex items-center gap-2">
@@ -75,7 +106,7 @@ export function Benchmark() {
         </div>
       </div>
 
-      <PeerCluster cluster={peerCluster} />
+      {peerCluster && <PeerCluster cluster={peerCluster} />}
     </div>
   );
 }

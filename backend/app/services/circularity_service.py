@@ -15,8 +15,33 @@ class CircularityService:
         Calculate multi-dimensional 0-100 Circularity Score.
         Evaluates material reuse, waste recovery, renewable integration,
         process thermal efficiency, and carbon utilization.
+        If no data exists, explicitly returns 0 with missing required inputs.
         """
         summary = EmissionService.calculate_summary(db, facility_id)
+        if summary.get("total_emissions", 0) == 0:
+            return {
+                "facility_id": facility_id,
+                "has_data": False,
+                "overall_score": 0.0,
+                "score": 0.0,
+                "rating": "Awaiting Telemetry Ingestion",
+                "missing_inputs": [
+                    "Energy carrier consumption records",
+                    "Machinery runtime & electricity telemetry",
+                    "Production output volume data"
+                ],
+                "dimensions": {
+                    "material_reuse": 0.0,
+                    "waste_recovery": 0.0,
+                    "renewable_energy": 0.0,
+                    "process_efficiency": 0.0,
+                    "carbon_utilization": 0.0
+                },
+                "breakdown": [],
+                "potential_uplift": 0.0,
+                "projected_score": 0.0
+            }
+
         hotspots = LeakService.get_structural_hotspots(db, facility_id).get("hotspots", [])
         anomalies = LeakService.get_anomalies(db, facility_id).get("anomalies", [])
 
@@ -59,42 +84,57 @@ class CircularityService:
             1
         )
 
-        if overall_score >= 80:
-            grade = "A (Circular Champion)"
-        elif overall_score >= 65:
-            grade = "B (Transitioning)"
-        elif overall_score >= 50:
-            grade = "C (Significant Linear Leaks)"
-        else:
-            grade = "D (High Fossil Dependency)"
+        dimensions = {
+            "material_reuse": round(material_reuse, 1),
+            "waste_recovery": round(waste_recovery, 1),
+            "renewable_energy": round(renewable_score, 1),
+            "process_efficiency": round(process_efficiency, 1),
+            "carbon_utilization": round(carbon_utilization, 1)
+        }
 
-        projected_score = min(92.0, round(overall_score + 22.5, 1))
+        breakdown = [
+            {"dimension": "Waste Heat & Condensate Recovery", "score": round(waste_recovery, 1), "weight": 25, "benchmark": 78.0},
+            {"dimension": "Process Electrical Efficiency", "score": round(process_efficiency, 1), "weight": 25, "benchmark": 82.0},
+            {"dimension": "Renewable Power Substitution", "score": round(renewable_score, 1), "weight": 20, "benchmark": 45.0},
+            {"dimension": "Secondary Scrap & Material Reuse", "score": round(material_reuse, 1), "weight": 20, "benchmark": 65.0},
+            {"dimension": "Carbon Abatement & Utilization", "score": round(carbon_utilization, 1), "weight": 10, "benchmark": 55.0}
+        ]
+
+        potential_uplift = round(min(28.0, max(5.0, 92.0 - overall_score)), 1)
+        projected_score = round(overall_score + potential_uplift, 1)
+
+        rating = "Advanced Circular Operations" if overall_score >= 80 else (
+            "Progressive Circularity" if overall_score >= 60 else "Linear Transition Risk"
+        )
+        grade = "A" if overall_score >= 80 else ("B" if overall_score >= 65 else ("C" if overall_score >= 50 else "D"))
+
+        dimension_benchmarks = {
+            "waste_recovery": 78.0,
+            "process_efficiency": 82.0,
+            "renewable_energy": 45.0,
+            "material_reuse": 65.0,
+            "carbon_utilization": 55.0
+        }
 
         key_insights = [
-            f"Current facility circularity sits at {overall_score}/100 ({grade}).",
-            "Waste heat recovery on exhaust ducts can improve Waste Recovery score by +20 points.",
-            "Compressor leak elimination and VFD modulation will raise Process Efficiency to 88/100.",
-            f"Adopting top circular interventions elevates the facility to {projected_score}/100."
+            f"Overall facility circularity index is {overall_score}/100 (Grade {grade}).",
+            f"Largest circularity gap identified in Waste Recovery ({round(waste_recovery, 1)}/100)." if waste_recovery < 75 else "Strong performance in process thermal efficiency.",
+            f"Adopting planned interventions can elevate facility score by +{potential_uplift} pts to {projected_score}/100."
         ]
 
         return {
             "facility_id": facility_id,
+            "has_data": True,
             "overall_score": overall_score,
+            "score": overall_score,
             "grade": grade,
-            "dimensions": {
-                "material_reuse": round(material_reuse, 1),
-                "waste_recovery": round(waste_recovery, 1),
-                "renewable_energy": round(renewable_score, 1),
-                "process_efficiency": round(process_efficiency, 1),
-                "carbon_utilization": round(carbon_utilization, 1)
-            },
+            "rating": rating,
+            "missing_inputs": [],
+            "dimensions": dimensions,
+            "breakdown": breakdown,
+            "potential_uplift": potential_uplift,
+            "projected_score": projected_score,
             "projected_score_after_interventions": projected_score,
-            "dimension_benchmarks": {
-                "material_reuse": 65.0,
-                "waste_recovery": 70.0,
-                "renewable_energy": 60.0,
-                "process_efficiency": 80.0,
-                "carbon_utilization": 55.0
-            },
+            "dimension_benchmarks": dimension_benchmarks,
             "key_insights": key_insights
         }

@@ -23,7 +23,7 @@ export function UploadSummary({ result, onAnalyze }) {
             Data Uploaded Successfully
           </h3>
           <p className="text-xs text-slate-300 mt-1 max-w-md mx-auto">
-            {result.message || '8,742 records synchronized with Apex Metals & Casting Unit 4 baseline models.'}
+            {result.message || 'Operational telemetry records synchronized with facility baseline models.'}
           </p>
         </div>
 

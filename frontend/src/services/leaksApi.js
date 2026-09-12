@@ -1,95 +1,85 @@
 import { apiRequest } from './apiClient';
-import { ENDPOINTS, toApiFacilityId } from '../constants/api';
-import { leaksMock } from '../data/leaksMock';
+import { ENDPOINTS } from '../constants/api';
 
-export async function getCarbonHotspots(facilityId = 'FAC-8842') {
+export async function getCarbonHotspots(facilityId) {
   const res = await apiRequest(ENDPOINTS.LEAKS_HOTSPOTS(facilityId), {
     method: 'GET',
-    mockData: leaksMock.hotspots_flow,
   });
-
-  if (res.data) {
-    if (res.data.hotspots && !res.data.nodes) {
-      // Hotspots payload from backend, attach fallback visualization data if needed
-      res.data.hotspots_flow = leaksMock.hotspots_flow;
-    }
-  }
-
   return res;
 }
 
-export async function getLeakAnomalies(facilityId = 'FAC-8842') {
+export async function getLeakAnomalies(facilityId) {
   const res = await apiRequest(ENDPOINTS.LEAKS_ANOMALIES(facilityId), {
     method: 'GET',
-    mockData: leaksMock,
   });
 
   if (res.data) {
     const raw = res.data;
-    if (raw.anomalies) {
-      const liveLeaks = raw.anomalies.map((a, idx) => {
-        const riskScore = Math.round(a.risk_score || 76);
-        const riskLevel = riskScore >= 75 ? 'Critical' : riskScore >= 50 ? 'High' : 'Moderate';
-        const deviation = Math.round(a.deviation_percent || 45);
+    const anomalies = Array.isArray(raw.anomalies) ? raw.anomalies : [];
+    const leaks = anomalies.map((a, idx) => {
+      const riskScore = Math.round(a.risk_score || 0);
+      const riskLevel = riskScore >= 75 ? 'Critical' : riskScore >= 50 ? 'High' : 'Moderate';
+      const deviation = Math.round(a.deviation_percent || 0);
 
-        return {
-          id: `LEAK-${String(a.leak_id || idx + 1).padStart(2, '0')}`,
-          equipment: a.equipment || 'Compressor 03',
-          process: a.process || 'Compressed Air Utility',
-          location: a.location || 'Utility Bay B',
-          risk_score: riskScore,
-          risk_level: riskLevel,
-          emission_contribution: Math.round(a.observed_consumption ? a.observed_consumption * 80 : 2480),
-          baseline_consumption: Math.round(a.baseline_consumption ?? 42),
-          observed_consumption: Math.round(a.observed_consumption ?? 61),
-          consumption_unit: a.consumption_unit || 'kWh/day',
-          deviation_percent: deviation,
-          abnormal_period: a.abnormal_period || '22:00 — 04:00 (Off-Hours)',
-          production_status: a.production_status === 'inactive' ? 'Inactive' : 'Active',
-          reason: a.reason || `Energy consumption is ${deviation}% above baseline during scheduled non-production hours.`,
-          potential_causes: a.potential_causes || [
-            'Unloader valve bypass leak and cycling inefficiency',
-            'Pneumatic manifold pressure drops triggering redundant motor starts',
-            'Absence of automated shutoff interlock during non-production shifts',
-          ],
-          hourly_observed_data: a.hourly_observed_data || leaksMock.leaks[0].hourly_observed_data,
-        };
-      });
-
-      // Combine with mock leaks if live returns fewer items to ensure comprehensive UI charts
-      const combinedLeaks = liveLeaks.length >= 3 ? liveLeaks : [
-        ...liveLeaks,
-        ...leaksMock.leaks.slice(liveLeaks.length)
-      ];
-
-      res.data = {
-        ...raw,
-        total_leaks: combinedLeaks.length,
-        high_risk_count: combinedLeaks.filter((l) => l.risk_score >= 70).length,
-        aggregate_excess_emissions: leaksMock.aggregate_excess_emissions,
-        leaks: combinedLeaks,
-        hotspots_flow: leaksMock.hotspots_flow,
+      return {
+        id: a.leak_id ? `LEAK-${String(a.leak_id).padStart(2, '0')}` : `LEAK-${String(idx + 1).padStart(2, '0')}`,
+        raw_id: a.leak_id || idx + 1,
+        equipment: a.equipment || 'Monitored Equipment',
+        process: a.process || 'Industrial Process',
+        location: a.location || 'Facility Floor',
+        risk_score: riskScore,
+        risk_level: riskLevel,
+        emission_contribution: Math.round(a.excess_emissions_kg || (a.observed_consumption ? a.observed_consumption * 0.82 : 0)),
+        baseline_consumption: Math.round(a.baseline_consumption || 0),
+        observed_consumption: Math.round(a.observed_consumption || 0),
+        consumption_unit: a.consumption_unit || 'kWh/day',
+        deviation_percent: deviation,
+        abnormal_period: a.abnormal_period || 'Operating Hours',
+        production_status: a.production_status === 'inactive' ? 'Inactive' : 'Active',
+        reason: a.reason || `Observed consumption is ${deviation}% above baseline during operation.`,
+        potential_causes: a.potential_causes || [
+          'Process parameter drift or control sensor desynchronization',
+          'Mechanical friction, pneumatic leak, or valve degradation',
+          'Idle running during non-production shifts'
+        ],
+        hourly_observed_data: a.hourly_observed_data || [],
       };
-    }
+    });
+
+    const highRiskCount = leaks.filter((l) => l.risk_score >= 70).length;
+    const aggregateExcess = leaks.reduce((acc, l) => acc + (l.emission_contribution || 0), 0);
+
+    res.data = {
+      ...raw,
+      facility_id: raw.facility_id || facilityId,
+      has_data: raw.has_data !== undefined ? raw.has_data : leaks.length > 0,
+      total_leaks: leaks.length,
+      high_risk_count: highRiskCount,
+      aggregate_excess_emissions: aggregateExcess,
+      leaks,
+      hotspots_flow: raw.hotspots_flow || null,
+    };
   }
 
   return res;
 }
 
-export async function getLeakById(leakId) {
-  const found = leaksMock.leaks.find((l) => l.id === leakId) || leaksMock.leaks[0];
+export async function getLeakById(leakId, facilityId) {
   try {
     const res = await apiRequest(ENDPOINTS.LEAK_BY_ID(leakId), {
       method: 'GET',
-      mockData: found,
     });
     return res;
   } catch (err) {
-    // If individual leak detail not implemented as standalone route in backend, fallback cleanly to mock
-    return {
-      success: true,
-      data: found,
-      isMock: true,
-    };
+    // If standalone endpoint not available, find from facility anomalies list
+    if (facilityId) {
+      const allRes = await getLeakAnomalies(facilityId);
+      const leaks = allRes.data?.leaks || [];
+      const found = leaks.find((l) => l.id === leakId || String(l.raw_id) === String(leakId));
+      if (found) {
+        return { success: true, data: found, isMock: false };
+      }
+    }
+    throw err;
   }
 }

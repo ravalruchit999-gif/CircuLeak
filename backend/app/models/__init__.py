@@ -6,6 +6,9 @@ from .recommendation import Recommendation
 from .simulation import Simulation
 from .benchmark import Benchmark
 from .user import User
+from .data_upload import DataUpload
+from .audit_log import AuditLog
+from .analysis_rule import AnalysisRule
 
 __all__ = [
     "Facility",
@@ -15,5 +18,8 @@ __all__ = [
     "Recommendation",
     "Simulation",
     "Benchmark",
-    "User"
+    "User",
+    "DataUpload",
+    "AuditLog",
+    "AnalysisRule",
 ]

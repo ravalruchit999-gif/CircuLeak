@@ -1,31 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useFacilityContext } from '../context/FacilityContext';
 import { getRecommendations } from '../services/recommendationsApi';
 
 export function useRecommendations() {
-  const { currentFacilityId, isMockMode, setLiveApiError } = useFacilityContext();
+  const { currentFacilityId } = useFacilityContext();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
+    if (!currentFacilityId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const response = await getRecommendations(currentFacilityId);
       setData(response.data);
-      setLiveApiError(null);
     } catch (err) {
       setError(err.message || 'Unable to load circular recommendations');
-      setLiveApiError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentFacilityId]);
 
   useEffect(() => {
     fetchRecommendations();
-  }, [currentFacilityId, isMockMode]);
+  }, [fetchRecommendations]);
 
   return { data, loading, error, refetch: fetchRecommendations };
 }
