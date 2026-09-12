@@ -35,7 +35,15 @@ export function ReductionPotential() {
     };
   }, [currentFacilityId]);
 
-  const items = recsData?.items || [];
+  const rawList = Array.isArray(recsData) ? recsData : (recsData?.items || recsData?.recommendations || []);
+  const items = rawList.map((item) => ({
+    ...item,
+    co2_reduction: item.co2_reduction ?? item.estimated_co2_reduction_annual_kg ?? 0,
+    investment: item.investment ?? item.estimated_cost_inr ?? 0,
+    annual_savings: item.annual_savings ?? item.annual_savings_inr ?? 0,
+    payback_years: item.payback_years ?? item.payback_period_years ?? 0,
+    target_equipment: item.target_equipment || 'Facility Asset',
+  }));
   const hasData = items.length > 0;
   const topQuickWin = items[0] || null;
 
@@ -67,9 +75,9 @@ export function ReductionPotential() {
     );
   }
 
-  const totalCapex = recsData.total_investment || items.reduce((s, i) => s + (i.investment || 0), 0);
-  const totalSavings = recsData.total_annual_savings || items.reduce((s, i) => s + (i.annual_savings || 0), 0);
-  const totalCo2 = recsData.potential_co2_reduction_total || items.reduce((s, i) => s + (i.co2_reduction || 0), 0);
+  const totalCapex = recsData?.total_investment || items.reduce((s, i) => s + (i.investment || 0), 0);
+  const totalSavings = recsData?.total_annual_savings || items.reduce((s, i) => s + (i.annual_savings || 0), 0);
+  const totalCo2 = recsData?.potential_co2_reduction_total || items.reduce((s, i) => s + (i.co2_reduction || 0), 0);
   const overallPayback = totalSavings > 0 ? Number((totalCapex / totalSavings).toFixed(2)) : 0;
 
   return (

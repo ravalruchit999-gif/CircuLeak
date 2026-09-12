@@ -13,8 +13,8 @@ export async function getEmissionsBreakdown(facilityId) {
   });
 }
 
-export async function getEmissionsTimeline(facilityId) {
-  return apiRequest(ENDPOINTS.EMISSIONS_TIMELINE(facilityId), {
+export async function getEmissionsTimeline(facilityId, interval = 'daily') {
+  return apiRequest(ENDPOINTS.EMISSIONS_TIMELINE(facilityId, interval), {
     method: 'GET',
   });
 }

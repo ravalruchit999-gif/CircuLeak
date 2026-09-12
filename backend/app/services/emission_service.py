@@ -142,10 +142,35 @@ class EmissionService:
 
     @staticmethod
     def calculate_timeline(db: Session, facility_id: int, timeline_type: str = "daily") -> Dict[str, Any]:
-        """Aggregate emissions across daily or monthly intervals."""
+        """Aggregate emissions across daily, hourly, or monthly intervals."""
         df = EmissionService.get_emissions_dataframe(db, facility_id)
         if df.empty:
             return {"facility_id": facility_id, "timeline_type": timeline_type, "points": []}
+
+        if timeline_type == "hourly":
+            hourly_df = df.groupby("hour").agg({
+                "calculated_emissions_kg": "sum",
+                "electricity_kwh": "sum",
+                "production_volume": "sum"
+            }).reset_index().sort_values("hour")
+
+            points = [
+                {
+                    "date": f"{int(row['hour']):02d}:00",
+                    "hour": int(row["hour"]),
+                    "emissions_kg": round(float(row["calculated_emissions_kg"]), 2),
+                    "electricity_kwh": round(float(row["electricity_kwh"]), 2),
+                    "production_volume": round(float(row["production_volume"]), 2),
+                    "actual": round(float(row["calculated_emissions_kg"]), 2),
+                    "baseline": round(float(row["calculated_emissions_kg"]) * 0.85, 2)
+                }
+                for _, row in hourly_df.iterrows()
+            ]
+            return {
+                "facility_id": facility_id,
+                "timeline_type": "hourly",
+                "points": points
+            }
 
         # Daily aggregation
         daily_df = df.groupby("date").agg({
@@ -157,9 +182,12 @@ class EmissionService:
         points = [
             {
                 "date": str(row["date"]),
+                "hour": None,
                 "emissions_kg": round(float(row["calculated_emissions_kg"]), 2),
                 "electricity_kwh": round(float(row["electricity_kwh"]), 2),
-                "production_volume": round(float(row["production_volume"]), 2)
+                "production_volume": round(float(row["production_volume"]), 2),
+                "actual": round(float(row["calculated_emissions_kg"]), 2),
+                "baseline": round(float(row["calculated_emissions_kg"]) * 0.85, 2)
             }
             for _, row in daily_df.iterrows()
         ]

@@ -33,10 +33,13 @@ class EmissionsBreakdownResponse(BaseModel):
 
 
 class TimelinePoint(BaseModel):
-    date: str
+    date: Optional[str] = None
+    hour: Optional[int] = None
     emissions_kg: float
     electricity_kwh: float
     production_volume: float
+    actual: Optional[float] = None
+    baseline: Optional[float] = None
 
 
 class EmissionsTimelineResponse(BaseModel):

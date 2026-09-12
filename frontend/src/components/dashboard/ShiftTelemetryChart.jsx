@@ -31,20 +31,22 @@ export function ShiftTelemetryChart() {
       setLoading(true);
       try {
         const [timeRes, anomRes] = await Promise.allSettled([
-          getEmissionsTimeline(currentFacilityId),
+          getEmissionsTimeline(currentFacilityId, 'hourly'),
           getLeakAnomalies(currentFacilityId),
         ]);
 
-        const rawTimeline = timeRes.status === 'fulfilled' ? (timeRes.value?.data || []) : [];
+        const rawData = timeRes.status === 'fulfilled' ? timeRes.value?.data : null;
+        const rawTimeline = Array.isArray(rawData?.points) ? rawData.points : (Array.isArray(rawData) ? rawData : []);
         const rawAnoms = anomRes.status === 'fulfilled' ? (anomRes.value?.data?.anomalies || anomRes.value?.data?.leaks || []) : [];
 
         if (isMounted) {
           if (Array.isArray(rawTimeline) && rawTimeline.length > 0) {
-            const formatted = rawTimeline.map((pt) => {
-              const hourNum = typeof pt.hour === 'number' ? pt.hour : parseInt(pt.hour || '0', 10);
+            const formatted = rawTimeline.map((pt, idx) => {
+              let hourNum = typeof pt.hour === 'number' ? pt.hour : parseInt(pt.hour || (pt.date && pt.date.includes(':') ? pt.date.split(':')[0] : idx), 10);
+              if (isNaN(hourNum)) hourNum = idx % 24;
               const hourLabel = `${String(hourNum).padStart(2, '0')}:00`;
               const shift = hourNum >= 22 || hourNum < 6 ? 'Night' : hourNum < 14 ? 'Morning' : 'Evening';
-              const actual = Math.round(pt.actual ?? pt.emissions ?? pt.electricity_kwh ?? 0);
+              const actual = Math.round(pt.actual ?? pt.emissions_kg ?? pt.emissions ?? pt.electricity_kwh ?? 0);
               const baseline = Math.round(pt.baseline ?? (actual * 0.85));
               const leak = Math.max(0, actual - baseline);
 

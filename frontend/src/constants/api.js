@@ -28,7 +28,8 @@ export const ENDPOINTS = {
   // Emissions Analytical Suite
   EMISSIONS_SUMMARY: (id) => `/emissions/summary/${toApiFacilityId(id)}`,
   EMISSIONS_BREAKDOWN: (id) => `/emissions/breakdown/${toApiFacilityId(id)}`,
-  EMISSIONS_TIMELINE: (id) => `/emissions/timeline/${toApiFacilityId(id)}`,
+  EMISSIONS_TIMELINE: (id, interval) =>
+    interval ? `/emissions/timeline/${toApiFacilityId(id)}?interval=${encodeURIComponent(interval)}` : `/emissions/timeline/${toApiFacilityId(id)}`,
   EMISSIONS_SANKEY: (id) => `/emissions/sankey/${toApiFacilityId(id)}`,
 
   // Leak & Anomaly Engine
