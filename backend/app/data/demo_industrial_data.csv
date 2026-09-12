@@ -1,0 +1,673 @@
+date,hour,equipment,process,electricity_kwh,fuel_type,fuel_quantity,production_volume,operating_hours
+2026-08-01,0,Compressor 03 (Screw),Compressed Air,25.98,none,0.0,0.0,0.0
+2026-08-01,0,Boiler 02 (Steam),Steam Generation,0.73,natural_gas,0.0,0.0,0.0
+2026-08-01,0,Stenter Frame Oven,Thermal Processing,1.35,natural_gas,0.0,0.0,0.0
+2026-08-01,0,Primary Chiller Unit,Cooling & HVAC,0.61,none,0.0,0.0,0.0
+2026-08-01,1,Compressor 03 (Screw),Compressed Air,25.68,none,0.0,0.0,0.0
+2026-08-01,1,Boiler 02 (Steam),Steam Generation,1.93,natural_gas,0.0,0.0,0.0
+2026-08-01,1,Stenter Frame Oven,Thermal Processing,1.06,natural_gas,0.0,0.0,0.0
+2026-08-01,1,Primary Chiller Unit,Cooling & HVAC,0.85,none,0.0,0.0,0.0
+2026-08-01,2,Compressor 03 (Screw),Compressed Air,26.09,none,0.0,0.0,0.0
+2026-08-01,2,Boiler 02 (Steam),Steam Generation,0.92,natural_gas,0.0,0.0,0.0
+2026-08-01,2,Stenter Frame Oven,Thermal Processing,1.06,natural_gas,0.0,0.0,0.0
+2026-08-01,2,Primary Chiller Unit,Cooling & HVAC,0.84,none,0.0,0.0,0.0
+2026-08-01,3,Compressor 03 (Screw),Compressed Air,23.33,none,0.0,0.0,0.0
+2026-08-01,3,Boiler 02 (Steam),Steam Generation,1.39,natural_gas,0.0,0.0,0.0
+2026-08-01,3,Stenter Frame Oven,Thermal Processing,0.54,natural_gas,0.0,0.0,0.0
+2026-08-01,3,Primary Chiller Unit,Cooling & HVAC,0.89,none,0.0,0.0,0.0
+2026-08-01,4,Compressor 03 (Screw),Compressed Air,23.09,none,0.0,0.0,0.0
+2026-08-01,4,Boiler 02 (Steam),Steam Generation,1.22,natural_gas,0.0,0.0,0.0
+2026-08-01,4,Stenter Frame Oven,Thermal Processing,1.6,natural_gas,0.0,0.0,0.0
+2026-08-01,4,Primary Chiller Unit,Cooling & HVAC,0.55,none,0.0,0.0,0.0
+2026-08-01,5,Compressor 03 (Screw),Compressed Air,24.14,none,0.0,0.0,0.0
+2026-08-01,5,Boiler 02 (Steam),Steam Generation,1.17,natural_gas,0.0,0.0,0.0
+2026-08-01,5,Stenter Frame Oven,Thermal Processing,1.03,natural_gas,0.0,0.0,0.0
+2026-08-01,5,Primary Chiller Unit,Cooling & HVAC,1.4,none,0.0,0.0,0.0
+2026-08-01,6,Compressor 03 (Screw),Compressed Air,24.26,none,0.0,0.0,0.0
+2026-08-01,6,Boiler 02 (Steam),Steam Generation,1.16,natural_gas,0.0,0.0,0.0
+2026-08-01,6,Stenter Frame Oven,Thermal Processing,2.0,natural_gas,0.0,0.0,0.0
+2026-08-01,6,Primary Chiller Unit,Cooling & HVAC,1.25,none,0.0,0.0,0.0
+2026-08-01,7,Compressor 03 (Screw),Compressed Air,24.34,none,0.0,0.0,0.0
+2026-08-01,7,Boiler 02 (Steam),Steam Generation,0.88,natural_gas,0.0,0.0,0.0
+2026-08-01,7,Stenter Frame Oven,Thermal Processing,1.39,natural_gas,0.0,0.0,0.0
+2026-08-01,7,Primary Chiller Unit,Cooling & HVAC,1.23,none,0.0,0.0,0.0
+2026-08-01,8,Compressor 03 (Screw),Compressed Air,25.9,none,0.0,0.0,0.0
+2026-08-01,8,Boiler 02 (Steam),Steam Generation,0.95,natural_gas,0.0,0.0,0.0
+2026-08-01,8,Stenter Frame Oven,Thermal Processing,1.35,natural_gas,0.0,0.0,0.0
+2026-08-01,8,Primary Chiller Unit,Cooling & HVAC,0.82,none,0.0,0.0,0.0
+2026-08-01,9,Compressor 03 (Screw),Compressed Air,24.02,none,0.0,0.0,0.0
+2026-08-01,9,Boiler 02 (Steam),Steam Generation,1.59,natural_gas,0.0,0.0,0.0
+2026-08-01,9,Stenter Frame Oven,Thermal Processing,0.56,natural_gas,0.0,0.0,0.0
+2026-08-01,9,Primary Chiller Unit,Cooling & HVAC,0.61,none,0.0,0.0,0.0
+2026-08-01,10,Compressor 03 (Screw),Compressed Air,25.17,none,0.0,0.0,0.0
+2026-08-01,10,Boiler 02 (Steam),Steam Generation,1.3,natural_gas,0.0,0.0,0.0
+2026-08-01,10,Stenter Frame Oven,Thermal Processing,1.11,natural_gas,0.0,0.0,0.0
+2026-08-01,10,Primary Chiller Unit,Cooling & HVAC,1.36,none,0.0,0.0,0.0
+2026-08-01,11,Compressor 03 (Screw),Compressed Air,26.62,none,0.0,0.0,0.0
+2026-08-01,11,Boiler 02 (Steam),Steam Generation,2.0,natural_gas,0.0,0.0,0.0
+2026-08-01,11,Stenter Frame Oven,Thermal Processing,1.8,natural_gas,0.0,0.0,0.0
+2026-08-01,11,Primary Chiller Unit,Cooling & HVAC,1.4,none,0.0,0.0,0.0
+2026-08-01,12,Compressor 03 (Screw),Compressed Air,25.56,none,0.0,0.0,0.0
+2026-08-01,12,Boiler 02 (Steam),Steam Generation,1.95,natural_gas,0.0,0.0,0.0
+2026-08-01,12,Stenter Frame Oven,Thermal Processing,1.91,natural_gas,0.0,0.0,0.0
+2026-08-01,12,Primary Chiller Unit,Cooling & HVAC,1.58,none,0.0,0.0,0.0
+2026-08-01,13,Compressor 03 (Screw),Compressed Air,26.09,none,0.0,0.0,0.0
+2026-08-01,13,Boiler 02 (Steam),Steam Generation,0.69,natural_gas,0.0,0.0,0.0
+2026-08-01,13,Stenter Frame Oven,Thermal Processing,0.87,natural_gas,0.0,0.0,0.0
+2026-08-01,13,Primary Chiller Unit,Cooling & HVAC,1.02,none,0.0,0.0,0.0
+2026-08-01,14,Compressor 03 (Screw),Compressed Air,27.14,none,0.0,0.0,0.0
+2026-08-01,14,Boiler 02 (Steam),Steam Generation,0.83,natural_gas,0.0,0.0,0.0
+2026-08-01,14,Stenter Frame Oven,Thermal Processing,1.72,natural_gas,0.0,0.0,0.0
+2026-08-01,14,Primary Chiller Unit,Cooling & HVAC,1.7,none,0.0,0.0,0.0
+2026-08-01,15,Compressor 03 (Screw),Compressed Air,26.0,none,0.0,0.0,0.0
+2026-08-01,15,Boiler 02 (Steam),Steam Generation,1.93,natural_gas,0.0,0.0,0.0
+2026-08-01,15,Stenter Frame Oven,Thermal Processing,0.76,natural_gas,0.0,0.0,0.0
+2026-08-01,15,Primary Chiller Unit,Cooling & HVAC,1.53,none,0.0,0.0,0.0
+2026-08-01,16,Compressor 03 (Screw),Compressed Air,24.3,none,0.0,0.0,0.0
+2026-08-01,16,Boiler 02 (Steam),Steam Generation,0.52,natural_gas,0.0,0.0,0.0
+2026-08-01,16,Stenter Frame Oven,Thermal Processing,0.95,natural_gas,0.0,0.0,0.0
+2026-08-01,16,Primary Chiller Unit,Cooling & HVAC,0.55,none,0.0,0.0,0.0
+2026-08-01,17,Compressor 03 (Screw),Compressed Air,23.59,none,0.0,0.0,0.0
+2026-08-01,17,Boiler 02 (Steam),Steam Generation,1.69,natural_gas,0.0,0.0,0.0
+2026-08-01,17,Stenter Frame Oven,Thermal Processing,1.69,natural_gas,0.0,0.0,0.0
+2026-08-01,17,Primary Chiller Unit,Cooling & HVAC,0.8,none,0.0,0.0,0.0
+2026-08-01,18,Compressor 03 (Screw),Compressed Air,26.63,none,0.0,0.0,0.0
+2026-08-01,18,Boiler 02 (Steam),Steam Generation,0.98,natural_gas,0.0,0.0,0.0
+2026-08-01,18,Stenter Frame Oven,Thermal Processing,0.92,natural_gas,0.0,0.0,0.0
+2026-08-01,18,Primary Chiller Unit,Cooling & HVAC,1.5,none,0.0,0.0,0.0
+2026-08-01,19,Compressor 03 (Screw),Compressed Air,25.29,none,0.0,0.0,0.0
+2026-08-01,19,Boiler 02 (Steam),Steam Generation,1.39,natural_gas,0.0,0.0,0.0
+2026-08-01,19,Stenter Frame Oven,Thermal Processing,0.77,natural_gas,0.0,0.0,0.0
+2026-08-01,19,Primary Chiller Unit,Cooling & HVAC,1.12,none,0.0,0.0,0.0
+2026-08-01,20,Compressor 03 (Screw),Compressed Air,25.28,none,0.0,0.0,0.0
+2026-08-01,20,Boiler 02 (Steam),Steam Generation,1.55,natural_gas,0.0,0.0,0.0
+2026-08-01,20,Stenter Frame Oven,Thermal Processing,1.4,natural_gas,0.0,0.0,0.0
+2026-08-01,20,Primary Chiller Unit,Cooling & HVAC,0.88,none,0.0,0.0,0.0
+2026-08-01,21,Compressor 03 (Screw),Compressed Air,26.86,none,0.0,0.0,0.0
+2026-08-01,21,Boiler 02 (Steam),Steam Generation,1.83,natural_gas,0.0,0.0,0.0
+2026-08-01,21,Stenter Frame Oven,Thermal Processing,0.8,natural_gas,0.0,0.0,0.0
+2026-08-01,21,Primary Chiller Unit,Cooling & HVAC,1.36,none,0.0,0.0,0.0
+2026-08-01,22,Compressor 03 (Screw),Compressed Air,26.44,none,0.0,0.0,0.0
+2026-08-01,22,Boiler 02 (Steam),Steam Generation,1.68,natural_gas,0.0,0.0,0.0
+2026-08-01,22,Stenter Frame Oven,Thermal Processing,0.91,natural_gas,0.0,0.0,0.0
+2026-08-01,22,Primary Chiller Unit,Cooling & HVAC,0.75,none,0.0,0.0,0.0
+2026-08-01,23,Compressor 03 (Screw),Compressed Air,26.58,none,0.0,0.0,0.0
+2026-08-01,23,Boiler 02 (Steam),Steam Generation,0.92,natural_gas,0.0,0.0,0.0
+2026-08-01,23,Stenter Frame Oven,Thermal Processing,1.98,natural_gas,0.0,0.0,0.0
+2026-08-01,23,Primary Chiller Unit,Cooling & HVAC,0.84,none,0.0,0.0,0.0
+2026-08-02,0,Compressor 03 (Screw),Compressed Air,26.36,none,0.0,0.0,0.0
+2026-08-02,0,Boiler 02 (Steam),Steam Generation,0.75,natural_gas,0.0,0.0,0.0
+2026-08-02,0,Stenter Frame Oven,Thermal Processing,1.1,natural_gas,0.0,0.0,0.0
+2026-08-02,0,Primary Chiller Unit,Cooling & HVAC,1.02,none,0.0,0.0,0.0
+2026-08-02,1,Compressor 03 (Screw),Compressed Air,24.15,none,0.0,0.0,0.0
+2026-08-02,1,Boiler 02 (Steam),Steam Generation,0.88,natural_gas,0.0,0.0,0.0
+2026-08-02,1,Stenter Frame Oven,Thermal Processing,1.13,natural_gas,0.0,0.0,0.0
+2026-08-02,1,Primary Chiller Unit,Cooling & HVAC,1.46,none,0.0,0.0,0.0
+2026-08-02,2,Compressor 03 (Screw),Compressed Air,26.68,none,0.0,0.0,0.0
+2026-08-02,2,Boiler 02 (Steam),Steam Generation,1.24,natural_gas,0.0,0.0,0.0
+2026-08-02,2,Stenter Frame Oven,Thermal Processing,0.86,natural_gas,0.0,0.0,0.0
+2026-08-02,2,Primary Chiller Unit,Cooling & HVAC,1.17,none,0.0,0.0,0.0
+2026-08-02,3,Compressor 03 (Screw),Compressed Air,26.12,none,0.0,0.0,0.0
+2026-08-02,3,Boiler 02 (Steam),Steam Generation,1.26,natural_gas,0.0,0.0,0.0
+2026-08-02,3,Stenter Frame Oven,Thermal Processing,0.76,natural_gas,0.0,0.0,0.0
+2026-08-02,3,Primary Chiller Unit,Cooling & HVAC,0.66,none,0.0,0.0,0.0
+2026-08-02,4,Compressor 03 (Screw),Compressed Air,25.86,none,0.0,0.0,0.0
+2026-08-02,4,Boiler 02 (Steam),Steam Generation,1.02,natural_gas,0.0,0.0,0.0
+2026-08-02,4,Stenter Frame Oven,Thermal Processing,1.59,natural_gas,0.0,0.0,0.0
+2026-08-02,4,Primary Chiller Unit,Cooling & HVAC,1.59,none,0.0,0.0,0.0
+2026-08-02,5,Compressor 03 (Screw),Compressed Air,26.82,none,0.0,0.0,0.0
+2026-08-02,5,Boiler 02 (Steam),Steam Generation,0.78,natural_gas,0.0,0.0,0.0
+2026-08-02,5,Stenter Frame Oven,Thermal Processing,1.03,natural_gas,0.0,0.0,0.0
+2026-08-02,5,Primary Chiller Unit,Cooling & HVAC,0.56,none,0.0,0.0,0.0
+2026-08-02,6,Compressor 03 (Screw),Compressed Air,26.41,none,0.0,0.0,0.0
+2026-08-02,6,Boiler 02 (Steam),Steam Generation,1.24,natural_gas,0.0,0.0,0.0
+2026-08-02,6,Stenter Frame Oven,Thermal Processing,0.53,natural_gas,0.0,0.0,0.0
+2026-08-02,6,Primary Chiller Unit,Cooling & HVAC,1.49,none,0.0,0.0,0.0
+2026-08-02,7,Compressor 03 (Screw),Compressed Air,23.34,none,0.0,0.0,0.0
+2026-08-02,7,Boiler 02 (Steam),Steam Generation,1.11,natural_gas,0.0,0.0,0.0
+2026-08-02,7,Stenter Frame Oven,Thermal Processing,1.72,natural_gas,0.0,0.0,0.0
+2026-08-02,7,Primary Chiller Unit,Cooling & HVAC,1.83,none,0.0,0.0,0.0
+2026-08-02,8,Compressor 03 (Screw),Compressed Air,25.25,none,0.0,0.0,0.0
+2026-08-02,8,Boiler 02 (Steam),Steam Generation,1.62,natural_gas,0.0,0.0,0.0
+2026-08-02,8,Stenter Frame Oven,Thermal Processing,1.92,natural_gas,0.0,0.0,0.0
+2026-08-02,8,Primary Chiller Unit,Cooling & HVAC,0.86,none,0.0,0.0,0.0
+2026-08-02,9,Compressor 03 (Screw),Compressed Air,25.17,none,0.0,0.0,0.0
+2026-08-02,9,Boiler 02 (Steam),Steam Generation,0.94,natural_gas,0.0,0.0,0.0
+2026-08-02,9,Stenter Frame Oven,Thermal Processing,1.34,natural_gas,0.0,0.0,0.0
+2026-08-02,9,Primary Chiller Unit,Cooling & HVAC,1.42,none,0.0,0.0,0.0
+2026-08-02,10,Compressor 03 (Screw),Compressed Air,23.6,none,0.0,0.0,0.0
+2026-08-02,10,Boiler 02 (Steam),Steam Generation,1.72,natural_gas,0.0,0.0,0.0
+2026-08-02,10,Stenter Frame Oven,Thermal Processing,1.64,natural_gas,0.0,0.0,0.0
+2026-08-02,10,Primary Chiller Unit,Cooling & HVAC,1.26,none,0.0,0.0,0.0
+2026-08-02,11,Compressor 03 (Screw),Compressed Air,24.98,none,0.0,0.0,0.0
+2026-08-02,11,Boiler 02 (Steam),Steam Generation,0.99,natural_gas,0.0,0.0,0.0
+2026-08-02,11,Stenter Frame Oven,Thermal Processing,1.53,natural_gas,0.0,0.0,0.0
+2026-08-02,11,Primary Chiller Unit,Cooling & HVAC,1.63,none,0.0,0.0,0.0
+2026-08-02,12,Compressor 03 (Screw),Compressed Air,27.35,none,0.0,0.0,0.0
+2026-08-02,12,Boiler 02 (Steam),Steam Generation,1.59,natural_gas,0.0,0.0,0.0
+2026-08-02,12,Stenter Frame Oven,Thermal Processing,1.82,natural_gas,0.0,0.0,0.0
+2026-08-02,12,Primary Chiller Unit,Cooling & HVAC,0.81,none,0.0,0.0,0.0
+2026-08-02,13,Compressor 03 (Screw),Compressed Air,23.24,none,0.0,0.0,0.0
+2026-08-02,13,Boiler 02 (Steam),Steam Generation,1.07,natural_gas,0.0,0.0,0.0
+2026-08-02,13,Stenter Frame Oven,Thermal Processing,1.8,natural_gas,0.0,0.0,0.0
+2026-08-02,13,Primary Chiller Unit,Cooling & HVAC,1.29,none,0.0,0.0,0.0
+2026-08-02,14,Compressor 03 (Screw),Compressed Air,25.69,none,0.0,0.0,0.0
+2026-08-02,14,Boiler 02 (Steam),Steam Generation,1.91,natural_gas,0.0,0.0,0.0
+2026-08-02,14,Stenter Frame Oven,Thermal Processing,0.62,natural_gas,0.0,0.0,0.0
+2026-08-02,14,Primary Chiller Unit,Cooling & HVAC,1.14,none,0.0,0.0,0.0
+2026-08-02,15,Compressor 03 (Screw),Compressed Air,26.45,none,0.0,0.0,0.0
+2026-08-02,15,Boiler 02 (Steam),Steam Generation,1.11,natural_gas,0.0,0.0,0.0
+2026-08-02,15,Stenter Frame Oven,Thermal Processing,1.27,natural_gas,0.0,0.0,0.0
+2026-08-02,15,Primary Chiller Unit,Cooling & HVAC,1.04,none,0.0,0.0,0.0
+2026-08-02,16,Compressor 03 (Screw),Compressed Air,26.01,none,0.0,0.0,0.0
+2026-08-02,16,Boiler 02 (Steam),Steam Generation,1.93,natural_gas,0.0,0.0,0.0
+2026-08-02,16,Stenter Frame Oven,Thermal Processing,1.58,natural_gas,0.0,0.0,0.0
+2026-08-02,16,Primary Chiller Unit,Cooling & HVAC,1.91,none,0.0,0.0,0.0
+2026-08-02,17,Compressor 03 (Screw),Compressed Air,25.53,none,0.0,0.0,0.0
+2026-08-02,17,Boiler 02 (Steam),Steam Generation,1.0,natural_gas,0.0,0.0,0.0
+2026-08-02,17,Stenter Frame Oven,Thermal Processing,0.58,natural_gas,0.0,0.0,0.0
+2026-08-02,17,Primary Chiller Unit,Cooling & HVAC,1.91,none,0.0,0.0,0.0
+2026-08-02,18,Compressor 03 (Screw),Compressed Air,23.24,none,0.0,0.0,0.0
+2026-08-02,18,Boiler 02 (Steam),Steam Generation,1.87,natural_gas,0.0,0.0,0.0
+2026-08-02,18,Stenter Frame Oven,Thermal Processing,1.98,natural_gas,0.0,0.0,0.0
+2026-08-02,18,Primary Chiller Unit,Cooling & HVAC,0.7,none,0.0,0.0,0.0
+2026-08-02,19,Compressor 03 (Screw),Compressed Air,23.91,none,0.0,0.0,0.0
+2026-08-02,19,Boiler 02 (Steam),Steam Generation,1.26,natural_gas,0.0,0.0,0.0
+2026-08-02,19,Stenter Frame Oven,Thermal Processing,1.22,natural_gas,0.0,0.0,0.0
+2026-08-02,19,Primary Chiller Unit,Cooling & HVAC,0.79,none,0.0,0.0,0.0
+2026-08-02,20,Compressor 03 (Screw),Compressed Air,23.75,none,0.0,0.0,0.0
+2026-08-02,20,Boiler 02 (Steam),Steam Generation,1.07,natural_gas,0.0,0.0,0.0
+2026-08-02,20,Stenter Frame Oven,Thermal Processing,0.9,natural_gas,0.0,0.0,0.0
+2026-08-02,20,Primary Chiller Unit,Cooling & HVAC,1.47,none,0.0,0.0,0.0
+2026-08-02,21,Compressor 03 (Screw),Compressed Air,25.51,none,0.0,0.0,0.0
+2026-08-02,21,Boiler 02 (Steam),Steam Generation,0.63,natural_gas,0.0,0.0,0.0
+2026-08-02,21,Stenter Frame Oven,Thermal Processing,1.98,natural_gas,0.0,0.0,0.0
+2026-08-02,21,Primary Chiller Unit,Cooling & HVAC,0.58,none,0.0,0.0,0.0
+2026-08-02,22,Compressor 03 (Screw),Compressed Air,27.4,none,0.0,0.0,0.0
+2026-08-02,22,Boiler 02 (Steam),Steam Generation,0.69,natural_gas,0.0,0.0,0.0
+2026-08-02,22,Stenter Frame Oven,Thermal Processing,1.12,natural_gas,0.0,0.0,0.0
+2026-08-02,22,Primary Chiller Unit,Cooling & HVAC,0.88,none,0.0,0.0,0.0
+2026-08-02,23,Compressor 03 (Screw),Compressed Air,23.2,none,0.0,0.0,0.0
+2026-08-02,23,Boiler 02 (Steam),Steam Generation,1.74,natural_gas,0.0,0.0,0.0
+2026-08-02,23,Stenter Frame Oven,Thermal Processing,1.62,natural_gas,0.0,0.0,0.0
+2026-08-02,23,Primary Chiller Unit,Cooling & HVAC,0.67,none,0.0,0.0,0.0
+2026-08-03,0,Compressor 03 (Screw),Compressed Air,26.3,none,0.0,0.0,0.0
+2026-08-03,0,Boiler 02 (Steam),Steam Generation,1.1,natural_gas,0.0,0.0,0.0
+2026-08-03,0,Stenter Frame Oven,Thermal Processing,1.7,natural_gas,0.0,0.0,0.0
+2026-08-03,0,Primary Chiller Unit,Cooling & HVAC,0.51,none,0.0,0.0,0.0
+2026-08-03,1,Compressor 03 (Screw),Compressed Air,24.57,none,0.0,0.0,0.0
+2026-08-03,1,Boiler 02 (Steam),Steam Generation,1.19,natural_gas,0.0,0.0,0.0
+2026-08-03,1,Stenter Frame Oven,Thermal Processing,0.73,natural_gas,0.0,0.0,0.0
+2026-08-03,1,Primary Chiller Unit,Cooling & HVAC,1.54,none,0.0,0.0,0.0
+2026-08-03,2,Compressor 03 (Screw),Compressed Air,26.93,none,0.0,0.0,0.0
+2026-08-03,2,Boiler 02 (Steam),Steam Generation,1.22,natural_gas,0.0,0.0,0.0
+2026-08-03,2,Stenter Frame Oven,Thermal Processing,0.65,natural_gas,0.0,0.0,0.0
+2026-08-03,2,Primary Chiller Unit,Cooling & HVAC,1.48,none,0.0,0.0,0.0
+2026-08-03,3,Compressor 03 (Screw),Compressed Air,26.94,none,0.0,0.0,0.0
+2026-08-03,3,Boiler 02 (Steam),Steam Generation,1.12,natural_gas,0.0,0.0,0.0
+2026-08-03,3,Stenter Frame Oven,Thermal Processing,1.5,natural_gas,0.0,0.0,0.0
+2026-08-03,3,Primary Chiller Unit,Cooling & HVAC,1.57,none,0.0,0.0,0.0
+2026-08-03,4,Compressor 03 (Screw),Compressed Air,26.9,none,0.0,0.0,0.0
+2026-08-03,4,Boiler 02 (Steam),Steam Generation,0.69,natural_gas,0.0,0.0,0.0
+2026-08-03,4,Stenter Frame Oven,Thermal Processing,1.51,natural_gas,0.0,0.0,0.0
+2026-08-03,4,Primary Chiller Unit,Cooling & HVAC,1.44,none,0.0,0.0,0.0
+2026-08-03,5,Compressor 03 (Screw),Compressed Air,27.17,none,0.0,0.0,0.0
+2026-08-03,5,Boiler 02 (Steam),Steam Generation,1.95,natural_gas,0.0,0.0,0.0
+2026-08-03,5,Stenter Frame Oven,Thermal Processing,0.68,natural_gas,0.0,0.0,0.0
+2026-08-03,5,Primary Chiller Unit,Cooling & HVAC,1.06,none,0.0,0.0,0.0
+2026-08-03,6,Compressor 03 (Screw),Compressed Air,32.41,none,0.0,101.1,1.0
+2026-08-03,6,Boiler 02 (Steam),Steam Generation,12.84,natural_gas,48.89,79.7,1.0
+2026-08-03,6,Stenter Frame Oven,Thermal Processing,1.94,natural_gas,0.0,0.0,0.0
+2026-08-03,6,Primary Chiller Unit,Cooling & HVAC,31.21,none,0.0,109.6,1.0
+2026-08-03,7,Compressor 03 (Screw),Compressed Air,30.54,none,0.0,87.3,1.0
+2026-08-03,7,Boiler 02 (Steam),Steam Generation,11.27,natural_gas,51.5,103.4,1.0
+2026-08-03,7,Stenter Frame Oven,Thermal Processing,46.7,natural_gas,30.61,98.1,1.0
+2026-08-03,7,Primary Chiller Unit,Cooling & HVAC,28.34,none,0.0,101.3,1.0
+2026-08-03,8,Compressor 03 (Screw),Compressed Air,32.77,none,0.0,105.4,1.0
+2026-08-03,8,Boiler 02 (Steam),Steam Generation,13.03,natural_gas,45.62,95.9,1.0
+2026-08-03,8,Stenter Frame Oven,Thermal Processing,48.11,natural_gas,34.41,76.9,1.0
+2026-08-03,8,Primary Chiller Unit,Cooling & HVAC,28.98,none,0.0,81.8,1.0
+2026-08-03,9,Compressor 03 (Screw),Compressed Air,33.18,none,0.0,81.0,1.0
+2026-08-03,9,Boiler 02 (Steam),Steam Generation,11.45,natural_gas,50.36,75.7,1.0
+2026-08-03,9,Stenter Frame Oven,Thermal Processing,47.17,natural_gas,28.05,77.2,1.0
+2026-08-03,9,Primary Chiller Unit,Cooling & HVAC,27.51,none,0.0,108.1,1.0
+2026-08-03,10,Compressor 03 (Screw),Compressed Air,33.87,none,0.0,76.1,1.0
+2026-08-03,10,Boiler 02 (Steam),Steam Generation,13.33,natural_gas,43.72,85.9,1.0
+2026-08-03,10,Stenter Frame Oven,Thermal Processing,43.18,natural_gas,28.14,109.5,1.0
+2026-08-03,10,Primary Chiller Unit,Cooling & HVAC,29.78,none,0.0,78.5,1.0
+2026-08-03,11,Compressor 03 (Screw),Compressed Air,31.55,none,0.0,87.9,1.0
+2026-08-03,11,Boiler 02 (Steam),Steam Generation,13.42,natural_gas,51.05,79.7,1.0
+2026-08-03,11,Stenter Frame Oven,Thermal Processing,46.16,natural_gas,31.53,88.6,1.0
+2026-08-03,11,Primary Chiller Unit,Cooling & HVAC,28.21,none,0.0,101.0,1.0
+2026-08-03,12,Compressor 03 (Screw),Compressed Air,31.77,none,0.0,80.8,1.0
+2026-08-03,12,Boiler 02 (Steam),Steam Generation,11.97,natural_gas,46.88,87.9,1.0
+2026-08-03,12,Stenter Frame Oven,Thermal Processing,42.63,natural_gas,28.26,95.0,1.0
+2026-08-03,12,Primary Chiller Unit,Cooling & HVAC,26.93,none,0.0,76.6,1.0
+2026-08-03,13,Compressor 03 (Screw),Compressed Air,30.78,none,0.0,88.6,1.0
+2026-08-03,13,Boiler 02 (Steam),Steam Generation,11.46,natural_gas,47.18,90.9,1.0
+2026-08-03,13,Stenter Frame Oven,Thermal Processing,44.1,natural_gas,29.49,97.9,1.0
+2026-08-03,13,Primary Chiller Unit,Cooling & HVAC,26.81,none,0.0,83.5,1.0
+2026-08-03,14,Compressor 03 (Screw),Compressed Air,31.16,none,0.0,79.9,1.0
+2026-08-03,14,Boiler 02 (Steam),Steam Generation,12.71,natural_gas,43.82,94.3,1.0
+2026-08-03,14,Stenter Frame Oven,Thermal Processing,44.32,natural_gas,29.77,82.4,1.0
+2026-08-03,14,Primary Chiller Unit,Cooling & HVAC,29.3,none,0.0,91.5,1.0
+2026-08-03,15,Compressor 03 (Screw),Compressed Air,30.54,none,0.0,105.4,1.0
+2026-08-03,15,Boiler 02 (Steam),Steam Generation,11.9,natural_gas,47.03,83.6,1.0
+2026-08-03,15,Stenter Frame Oven,Thermal Processing,46.92,natural_gas,31.92,107.7,1.0
+2026-08-03,15,Primary Chiller Unit,Cooling & HVAC,26.97,none,0.0,94.2,1.0
+2026-08-03,16,Compressor 03 (Screw),Compressed Air,33.4,none,0.0,83.5,1.0
+2026-08-03,16,Boiler 02 (Steam),Steam Generation,12.58,natural_gas,41.6,105.4,1.0
+2026-08-03,16,Stenter Frame Oven,Thermal Processing,42.09,natural_gas,27.67,79.4,1.0
+2026-08-03,16,Primary Chiller Unit,Cooling & HVAC,29.07,none,0.0,79.1,1.0
+2026-08-03,17,Compressor 03 (Screw),Compressed Air,33.8,none,0.0,81.7,1.0
+2026-08-03,17,Boiler 02 (Steam),Steam Generation,11.85,natural_gas,47.67,83.5,1.0
+2026-08-03,17,Stenter Frame Oven,Thermal Processing,49.94,natural_gas,28.7,77.0,1.0
+2026-08-03,17,Primary Chiller Unit,Cooling & HVAC,26.18,none,0.0,98.5,1.0
+2026-08-03,18,Compressor 03 (Screw),Compressed Air,35.04,none,0.0,101.6,1.0
+2026-08-03,18,Boiler 02 (Steam),Steam Generation,13.12,natural_gas,40.99,94.1,1.0
+2026-08-03,18,Stenter Frame Oven,Thermal Processing,45.59,natural_gas,27.25,94.4,1.0
+2026-08-03,18,Primary Chiller Unit,Cooling & HVAC,27.17,none,0.0,99.7,1.0
+2026-08-03,19,Compressor 03 (Screw),Compressed Air,33.47,none,0.0,104.0,1.0
+2026-08-03,19,Boiler 02 (Steam),Steam Generation,13.22,natural_gas,51.59,85.7,1.0
+2026-08-03,19,Stenter Frame Oven,Thermal Processing,48.52,natural_gas,29.79,78.1,1.0
+2026-08-03,19,Primary Chiller Unit,Cooling & HVAC,31.02,none,0.0,75.1,1.0
+2026-08-03,20,Compressor 03 (Screw),Compressed Air,35.64,none,0.0,95.0,1.0
+2026-08-03,20,Boiler 02 (Steam),Steam Generation,12.59,natural_gas,41.0,101.8,1.0
+2026-08-03,20,Stenter Frame Oven,Thermal Processing,46.51,natural_gas,34.05,105.4,1.0
+2026-08-03,20,Primary Chiller Unit,Cooling & HVAC,28.19,none,0.0,91.1,1.0
+2026-08-03,21,Compressor 03 (Screw),Compressed Air,29.92,none,0.0,84.1,1.0
+2026-08-03,21,Boiler 02 (Steam),Steam Generation,12.42,natural_gas,48.85,95.9,1.0
+2026-08-03,21,Stenter Frame Oven,Thermal Processing,0.7,natural_gas,0.0,0.0,0.0
+2026-08-03,21,Primary Chiller Unit,Cooling & HVAC,30.49,none,0.0,104.8,1.0
+2026-08-03,22,Compressor 03 (Screw),Compressed Air,23.5,none,0.0,0.0,0.0
+2026-08-03,22,Boiler 02 (Steam),Steam Generation,0.86,natural_gas,0.0,0.0,0.0
+2026-08-03,22,Stenter Frame Oven,Thermal Processing,1.76,natural_gas,0.0,0.0,0.0
+2026-08-03,22,Primary Chiller Unit,Cooling & HVAC,27.86,none,0.0,88.1,1.0
+2026-08-03,23,Compressor 03 (Screw),Compressed Air,24.22,none,0.0,0.0,0.0
+2026-08-03,23,Boiler 02 (Steam),Steam Generation,1.94,natural_gas,0.0,0.0,0.0
+2026-08-03,23,Stenter Frame Oven,Thermal Processing,0.84,natural_gas,0.0,0.0,0.0
+2026-08-03,23,Primary Chiller Unit,Cooling & HVAC,1.2,none,0.0,0.0,0.0
+2026-08-04,0,Compressor 03 (Screw),Compressed Air,24.1,none,0.0,0.0,0.0
+2026-08-04,0,Boiler 02 (Steam),Steam Generation,0.73,natural_gas,0.0,0.0,0.0
+2026-08-04,0,Stenter Frame Oven,Thermal Processing,0.62,natural_gas,0.0,0.0,0.0
+2026-08-04,0,Primary Chiller Unit,Cooling & HVAC,1.93,none,0.0,0.0,0.0
+2026-08-04,1,Compressor 03 (Screw),Compressed Air,26.92,none,0.0,0.0,0.0
+2026-08-04,1,Boiler 02 (Steam),Steam Generation,0.56,natural_gas,0.0,0.0,0.0
+2026-08-04,1,Stenter Frame Oven,Thermal Processing,1.64,natural_gas,0.0,0.0,0.0
+2026-08-04,1,Primary Chiller Unit,Cooling & HVAC,1.23,none,0.0,0.0,0.0
+2026-08-04,2,Compressor 03 (Screw),Compressed Air,23.2,none,0.0,0.0,0.0
+2026-08-04,2,Boiler 02 (Steam),Steam Generation,1.25,natural_gas,0.0,0.0,0.0
+2026-08-04,2,Stenter Frame Oven,Thermal Processing,0.52,natural_gas,0.0,0.0,0.0
+2026-08-04,2,Primary Chiller Unit,Cooling & HVAC,1.26,none,0.0,0.0,0.0
+2026-08-04,3,Compressor 03 (Screw),Compressed Air,26.91,none,0.0,0.0,0.0
+2026-08-04,3,Boiler 02 (Steam),Steam Generation,1.49,natural_gas,0.0,0.0,0.0
+2026-08-04,3,Stenter Frame Oven,Thermal Processing,0.87,natural_gas,0.0,0.0,0.0
+2026-08-04,3,Primary Chiller Unit,Cooling & HVAC,0.73,none,0.0,0.0,0.0
+2026-08-04,4,Compressor 03 (Screw),Compressed Air,26.97,none,0.0,0.0,0.0
+2026-08-04,4,Boiler 02 (Steam),Steam Generation,1.69,natural_gas,0.0,0.0,0.0
+2026-08-04,4,Stenter Frame Oven,Thermal Processing,0.57,natural_gas,0.0,0.0,0.0
+2026-08-04,4,Primary Chiller Unit,Cooling & HVAC,1.93,none,0.0,0.0,0.0
+2026-08-04,5,Compressor 03 (Screw),Compressed Air,26.4,none,0.0,0.0,0.0
+2026-08-04,5,Boiler 02 (Steam),Steam Generation,0.74,natural_gas,0.0,0.0,0.0
+2026-08-04,5,Stenter Frame Oven,Thermal Processing,1.06,natural_gas,0.0,0.0,0.0
+2026-08-04,5,Primary Chiller Unit,Cooling & HVAC,1.78,none,0.0,0.0,0.0
+2026-08-04,6,Compressor 03 (Screw),Compressed Air,29.99,none,0.0,107.5,1.0
+2026-08-04,6,Boiler 02 (Steam),Steam Generation,11.78,natural_gas,50.93,107.1,1.0
+2026-08-04,6,Stenter Frame Oven,Thermal Processing,1.64,natural_gas,0.0,0.0,0.0
+2026-08-04,6,Primary Chiller Unit,Cooling & HVAC,30.31,none,0.0,93.9,1.0
+2026-08-04,7,Compressor 03 (Screw),Compressed Air,30.11,none,0.0,75.6,1.0
+2026-08-04,7,Boiler 02 (Steam),Steam Generation,11.28,natural_gas,48.1,75.6,1.0
+2026-08-04,7,Stenter Frame Oven,Thermal Processing,48.76,natural_gas,28.51,108.3,1.0
+2026-08-04,7,Primary Chiller Unit,Cooling & HVAC,30.48,none,0.0,103.1,1.0
+2026-08-04,8,Compressor 03 (Screw),Compressed Air,30.52,none,0.0,101.5,1.0
+2026-08-04,8,Boiler 02 (Steam),Steam Generation,11.66,natural_gas,47.88,97.1,1.0
+2026-08-04,8,Stenter Frame Oven,Thermal Processing,46.81,natural_gas,33.87,101.3,1.0
+2026-08-04,8,Primary Chiller Unit,Cooling & HVAC,27.97,none,0.0,98.4,1.0
+2026-08-04,9,Compressor 03 (Screw),Compressed Air,34.69,none,0.0,97.7,1.0
+2026-08-04,9,Boiler 02 (Steam),Steam Generation,11.88,natural_gas,40.64,98.9,1.0
+2026-08-04,9,Stenter Frame Oven,Thermal Processing,49.05,natural_gas,27.81,88.6,1.0
+2026-08-04,9,Primary Chiller Unit,Cooling & HVAC,29.33,none,0.0,84.0,1.0
+2026-08-04,10,Compressor 03 (Screw),Compressed Air,33.69,none,0.0,108.7,1.0
+2026-08-04,10,Boiler 02 (Steam),Steam Generation,12.77,natural_gas,48.13,107.0,1.0
+2026-08-04,10,Stenter Frame Oven,Thermal Processing,47.67,natural_gas,34.15,90.4,1.0
+2026-08-04,10,Primary Chiller Unit,Cooling & HVAC,25.8,none,0.0,84.6,1.0
+2026-08-04,11,Compressor 03 (Screw),Compressed Air,34.21,none,0.0,81.4,1.0
+2026-08-04,11,Boiler 02 (Steam),Steam Generation,11.49,natural_gas,44.74,104.3,1.0
+2026-08-04,11,Stenter Frame Oven,Thermal Processing,44.97,natural_gas,33.95,106.0,1.0
+2026-08-04,11,Primary Chiller Unit,Cooling & HVAC,30.4,none,0.0,105.7,1.0
+2026-08-04,12,Compressor 03 (Screw),Compressed Air,29.94,none,0.0,101.8,1.0
+2026-08-04,12,Boiler 02 (Steam),Steam Generation,12.81,natural_gas,42.45,85.6,1.0
+2026-08-04,12,Stenter Frame Oven,Thermal Processing,45.42,natural_gas,29.77,80.2,1.0
+2026-08-04,12,Primary Chiller Unit,Cooling & HVAC,26.6,none,0.0,99.4,1.0
+2026-08-04,13,Compressor 03 (Screw),Compressed Air,29.93,none,0.0,104.4,1.0
+2026-08-04,13,Boiler 02 (Steam),Steam Generation,12.33,natural_gas,46.82,88.4,1.0
+2026-08-04,13,Stenter Frame Oven,Thermal Processing,46.53,natural_gas,29.47,91.7,1.0
+2026-08-04,13,Primary Chiller Unit,Cooling & HVAC,26.51,none,0.0,88.2,1.0
+2026-08-04,14,Compressor 03 (Screw),Compressed Air,32.98,none,0.0,82.9,1.0
+2026-08-04,14,Boiler 02 (Steam),Steam Generation,11.09,natural_gas,42.35,93.7,1.0
+2026-08-04,14,Stenter Frame Oven,Thermal Processing,45.65,natural_gas,29.36,77.4,1.0
+2026-08-04,14,Primary Chiller Unit,Cooling & HVAC,28.38,none,0.0,87.1,1.0
+2026-08-04,15,Compressor 03 (Screw),Compressed Air,35.04,none,0.0,81.8,1.0
+2026-08-04,15,Boiler 02 (Steam),Steam Generation,11.73,natural_gas,49.18,104.3,1.0
+2026-08-04,15,Stenter Frame Oven,Thermal Processing,48.19,natural_gas,29.16,106.0,1.0
+2026-08-04,15,Primary Chiller Unit,Cooling & HVAC,30.45,none,0.0,81.9,1.0
+2026-08-04,16,Compressor 03 (Screw),Compressed Air,32.01,none,0.0,99.1,1.0
+2026-08-04,16,Boiler 02 (Steam),Steam Generation,11.86,natural_gas,49.66,83.3,1.0
+2026-08-04,16,Stenter Frame Oven,Thermal Processing,43.76,natural_gas,32.54,76.6,1.0
+2026-08-04,16,Primary Chiller Unit,Cooling & HVAC,27.82,none,0.0,109.0,1.0
+2026-08-04,17,Compressor 03 (Screw),Compressed Air,31.34,none,0.0,102.9,1.0
+2026-08-04,17,Boiler 02 (Steam),Steam Generation,12.0,natural_gas,43.28,100.8,1.0
+2026-08-04,17,Stenter Frame Oven,Thermal Processing,48.43,natural_gas,30.13,99.9,1.0
+2026-08-04,17,Primary Chiller Unit,Cooling & HVAC,30.26,none,0.0,104.3,1.0
+2026-08-04,18,Compressor 03 (Screw),Compressed Air,33.56,none,0.0,89.4,1.0
+2026-08-04,18,Boiler 02 (Steam),Steam Generation,11.62,natural_gas,45.49,94.1,1.0
+2026-08-04,18,Stenter Frame Oven,Thermal Processing,42.16,natural_gas,28.42,91.0,1.0
+2026-08-04,18,Primary Chiller Unit,Cooling & HVAC,30.89,none,0.0,82.2,1.0
+2026-08-04,19,Compressor 03 (Screw),Compressed Air,35.24,none,0.0,102.6,1.0
+2026-08-04,19,Boiler 02 (Steam),Steam Generation,12.78,natural_gas,50.1,96.5,1.0
+2026-08-04,19,Stenter Frame Oven,Thermal Processing,47.57,natural_gas,31.93,94.0,1.0
+2026-08-04,19,Primary Chiller Unit,Cooling & HVAC,29.18,none,0.0,100.4,1.0
+2026-08-04,20,Compressor 03 (Screw),Compressed Air,34.46,none,0.0,86.0,1.0
+2026-08-04,20,Boiler 02 (Steam),Steam Generation,11.56,natural_gas,42.14,108.5,1.0
+2026-08-04,20,Stenter Frame Oven,Thermal Processing,45.82,natural_gas,29.69,89.8,1.0
+2026-08-04,20,Primary Chiller Unit,Cooling & HVAC,30.48,none,0.0,89.2,1.0
+2026-08-04,21,Compressor 03 (Screw),Compressed Air,35.4,none,0.0,106.4,1.0
+2026-08-04,21,Boiler 02 (Steam),Steam Generation,11.6,natural_gas,48.22,108.9,1.0
+2026-08-04,21,Stenter Frame Oven,Thermal Processing,0.55,natural_gas,0.0,0.0,0.0
+2026-08-04,21,Primary Chiller Unit,Cooling & HVAC,28.12,none,0.0,93.0,1.0
+2026-08-04,22,Compressor 03 (Screw),Compressed Air,23.47,none,0.0,0.0,0.0
+2026-08-04,22,Boiler 02 (Steam),Steam Generation,0.51,natural_gas,0.0,0.0,0.0
+2026-08-04,22,Stenter Frame Oven,Thermal Processing,1.53,natural_gas,0.0,0.0,0.0
+2026-08-04,22,Primary Chiller Unit,Cooling & HVAC,26.24,none,0.0,101.2,1.0
+2026-08-04,23,Compressor 03 (Screw),Compressed Air,24.12,none,0.0,0.0,0.0
+2026-08-04,23,Boiler 02 (Steam),Steam Generation,1.47,natural_gas,0.0,0.0,0.0
+2026-08-04,23,Stenter Frame Oven,Thermal Processing,0.92,natural_gas,0.0,0.0,0.0
+2026-08-04,23,Primary Chiller Unit,Cooling & HVAC,1.74,none,0.0,0.0,0.0
+2026-08-05,0,Compressor 03 (Screw),Compressed Air,23.49,none,0.0,0.0,0.0
+2026-08-05,0,Boiler 02 (Steam),Steam Generation,1.39,natural_gas,0.0,0.0,0.0
+2026-08-05,0,Stenter Frame Oven,Thermal Processing,1.56,natural_gas,0.0,0.0,0.0
+2026-08-05,0,Primary Chiller Unit,Cooling & HVAC,0.57,none,0.0,0.0,0.0
+2026-08-05,1,Compressor 03 (Screw),Compressed Air,26.17,none,0.0,0.0,0.0
+2026-08-05,1,Boiler 02 (Steam),Steam Generation,1.4,natural_gas,0.0,0.0,0.0
+2026-08-05,1,Stenter Frame Oven,Thermal Processing,0.63,natural_gas,0.0,0.0,0.0
+2026-08-05,1,Primary Chiller Unit,Cooling & HVAC,1.14,none,0.0,0.0,0.0
+2026-08-05,2,Compressor 03 (Screw),Compressed Air,26.13,none,0.0,0.0,0.0
+2026-08-05,2,Boiler 02 (Steam),Steam Generation,0.78,natural_gas,0.0,0.0,0.0
+2026-08-05,2,Stenter Frame Oven,Thermal Processing,1.0,natural_gas,0.0,0.0,0.0
+2026-08-05,2,Primary Chiller Unit,Cooling & HVAC,0.95,none,0.0,0.0,0.0
+2026-08-05,3,Compressor 03 (Screw),Compressed Air,27.32,none,0.0,0.0,0.0
+2026-08-05,3,Boiler 02 (Steam),Steam Generation,1.25,natural_gas,0.0,0.0,0.0
+2026-08-05,3,Stenter Frame Oven,Thermal Processing,1.11,natural_gas,0.0,0.0,0.0
+2026-08-05,3,Primary Chiller Unit,Cooling & HVAC,1.29,none,0.0,0.0,0.0
+2026-08-05,4,Compressor 03 (Screw),Compressed Air,24.6,none,0.0,0.0,0.0
+2026-08-05,4,Boiler 02 (Steam),Steam Generation,1.76,natural_gas,0.0,0.0,0.0
+2026-08-05,4,Stenter Frame Oven,Thermal Processing,0.83,natural_gas,0.0,0.0,0.0
+2026-08-05,4,Primary Chiller Unit,Cooling & HVAC,0.7,none,0.0,0.0,0.0
+2026-08-05,5,Compressor 03 (Screw),Compressed Air,25.71,none,0.0,0.0,0.0
+2026-08-05,5,Boiler 02 (Steam),Steam Generation,1.63,natural_gas,0.0,0.0,0.0
+2026-08-05,5,Stenter Frame Oven,Thermal Processing,0.93,natural_gas,0.0,0.0,0.0
+2026-08-05,5,Primary Chiller Unit,Cooling & HVAC,1.89,none,0.0,0.0,0.0
+2026-08-05,6,Compressor 03 (Screw),Compressed Air,35.74,none,0.0,103.4,1.0
+2026-08-05,6,Boiler 02 (Steam),Steam Generation,13.07,natural_gas,47.14,76.7,1.0
+2026-08-05,6,Stenter Frame Oven,Thermal Processing,1.73,natural_gas,0.0,0.0,0.0
+2026-08-05,6,Primary Chiller Unit,Cooling & HVAC,27.91,none,0.0,108.2,1.0
+2026-08-05,7,Compressor 03 (Screw),Compressed Air,31.81,none,0.0,86.0,1.0
+2026-08-05,7,Boiler 02 (Steam),Steam Generation,11.64,natural_gas,50.56,87.1,1.0
+2026-08-05,7,Stenter Frame Oven,Thermal Processing,44.99,natural_gas,34.16,77.6,1.0
+2026-08-05,7,Primary Chiller Unit,Cooling & HVAC,27.5,none,0.0,106.3,1.0
+2026-08-05,8,Compressor 03 (Screw),Compressed Air,33.13,none,0.0,92.0,1.0
+2026-08-05,8,Boiler 02 (Steam),Steam Generation,11.19,natural_gas,48.55,84.6,1.0
+2026-08-05,8,Stenter Frame Oven,Thermal Processing,44.0,natural_gas,29.26,98.5,1.0
+2026-08-05,8,Primary Chiller Unit,Cooling & HVAC,28.64,none,0.0,82.9,1.0
+2026-08-05,9,Compressor 03 (Screw),Compressed Air,35.33,none,0.0,87.5,1.0
+2026-08-05,9,Boiler 02 (Steam),Steam Generation,13.38,natural_gas,51.25,89.6,1.0
+2026-08-05,9,Stenter Frame Oven,Thermal Processing,45.44,natural_gas,27.54,105.2,1.0
+2026-08-05,9,Primary Chiller Unit,Cooling & HVAC,27.56,none,0.0,99.2,1.0
+2026-08-05,10,Compressor 03 (Screw),Compressed Air,33.03,none,0.0,84.5,1.0
+2026-08-05,10,Boiler 02 (Steam),Steam Generation,13.44,natural_gas,43.45,84.9,1.0
+2026-08-05,10,Stenter Frame Oven,Thermal Processing,48.76,natural_gas,33.95,83.4,1.0
+2026-08-05,10,Primary Chiller Unit,Cooling & HVAC,27.76,none,0.0,99.8,1.0
+2026-08-05,11,Compressor 03 (Screw),Compressed Air,30.04,none,0.0,83.5,1.0
+2026-08-05,11,Boiler 02 (Steam),Steam Generation,11.79,natural_gas,49.71,97.9,1.0
+2026-08-05,11,Stenter Frame Oven,Thermal Processing,41.63,natural_gas,32.42,99.7,1.0
+2026-08-05,11,Primary Chiller Unit,Cooling & HVAC,31.33,none,0.0,94.4,1.0
+2026-08-05,12,Compressor 03 (Screw),Compressed Air,34.17,none,0.0,92.2,1.0
+2026-08-05,12,Boiler 02 (Steam),Steam Generation,11.1,natural_gas,41.35,84.2,1.0
+2026-08-05,12,Stenter Frame Oven,Thermal Processing,47.22,natural_gas,33.42,81.6,1.0
+2026-08-05,12,Primary Chiller Unit,Cooling & HVAC,28.56,none,0.0,81.3,1.0
+2026-08-05,13,Compressor 03 (Screw),Compressed Air,30.73,none,0.0,96.9,1.0
+2026-08-05,13,Boiler 02 (Steam),Steam Generation,11.12,natural_gas,40.5,82.6,1.0
+2026-08-05,13,Stenter Frame Oven,Thermal Processing,43.69,natural_gas,27.69,83.6,1.0
+2026-08-05,13,Primary Chiller Unit,Cooling & HVAC,25.93,none,0.0,81.2,1.0
+2026-08-05,14,Compressor 03 (Screw),Compressed Air,30.43,none,0.0,93.9,1.0
+2026-08-05,14,Boiler 02 (Steam),Steam Generation,11.21,natural_gas,45.04,84.9,1.0
+2026-08-05,14,Stenter Frame Oven,Thermal Processing,42.82,natural_gas,28.79,82.6,1.0
+2026-08-05,14,Primary Chiller Unit,Cooling & HVAC,27.38,none,0.0,103.6,1.0
+2026-08-05,15,Compressor 03 (Screw),Compressed Air,32.29,none,0.0,83.7,1.0
+2026-08-05,15,Boiler 02 (Steam),Steam Generation,12.23,natural_gas,47.53,78.3,1.0
+2026-08-05,15,Stenter Frame Oven,Thermal Processing,50.04,natural_gas,34.12,80.4,1.0
+2026-08-05,15,Primary Chiller Unit,Cooling & HVAC,27.99,none,0.0,101.3,1.0
+2026-08-05,16,Compressor 03 (Screw),Compressed Air,33.12,none,0.0,77.7,1.0
+2026-08-05,16,Boiler 02 (Steam),Steam Generation,11.31,natural_gas,43.09,82.6,1.0
+2026-08-05,16,Stenter Frame Oven,Thermal Processing,48.24,natural_gas,28.85,79.5,1.0
+2026-08-05,16,Primary Chiller Unit,Cooling & HVAC,27.74,none,0.0,81.7,1.0
+2026-08-05,17,Compressor 03 (Screw),Compressed Air,34.54,none,0.0,108.9,1.0
+2026-08-05,17,Boiler 02 (Steam),Steam Generation,12.2,natural_gas,50.32,85.6,1.0
+2026-08-05,17,Stenter Frame Oven,Thermal Processing,46.41,natural_gas,32.94,87.8,1.0
+2026-08-05,17,Primary Chiller Unit,Cooling & HVAC,30.31,none,0.0,88.3,1.0
+2026-08-05,18,Compressor 03 (Screw),Compressed Air,35.33,none,0.0,75.6,1.0
+2026-08-05,18,Boiler 02 (Steam),Steam Generation,12.55,natural_gas,41.98,84.0,1.0
+2026-08-05,18,Stenter Frame Oven,Thermal Processing,44.28,natural_gas,30.02,86.4,1.0
+2026-08-05,18,Primary Chiller Unit,Cooling & HVAC,28.11,none,0.0,98.1,1.0
+2026-08-05,19,Compressor 03 (Screw),Compressed Air,29.56,none,0.0,84.2,1.0
+2026-08-05,19,Boiler 02 (Steam),Steam Generation,11.44,natural_gas,49.23,93.8,1.0
+2026-08-05,19,Stenter Frame Oven,Thermal Processing,41.6,natural_gas,29.21,81.0,1.0
+2026-08-05,19,Primary Chiller Unit,Cooling & HVAC,29.14,none,0.0,75.9,1.0
+2026-08-05,20,Compressor 03 (Screw),Compressed Air,29.98,none,0.0,109.1,1.0
+2026-08-05,20,Boiler 02 (Steam),Steam Generation,13.3,natural_gas,48.76,100.4,1.0
+2026-08-05,20,Stenter Frame Oven,Thermal Processing,41.56,natural_gas,32.06,88.6,1.0
+2026-08-05,20,Primary Chiller Unit,Cooling & HVAC,27.6,none,0.0,88.8,1.0
+2026-08-05,21,Compressor 03 (Screw),Compressed Air,29.68,none,0.0,76.5,1.0
+2026-08-05,21,Boiler 02 (Steam),Steam Generation,12.28,natural_gas,49.01,83.8,1.0
+2026-08-05,21,Stenter Frame Oven,Thermal Processing,0.93,natural_gas,0.0,0.0,0.0
+2026-08-05,21,Primary Chiller Unit,Cooling & HVAC,29.79,none,0.0,101.4,1.0
+2026-08-05,22,Compressor 03 (Screw),Compressed Air,26.93,none,0.0,0.0,0.0
+2026-08-05,22,Boiler 02 (Steam),Steam Generation,1.96,natural_gas,0.0,0.0,0.0
+2026-08-05,22,Stenter Frame Oven,Thermal Processing,1.13,natural_gas,0.0,0.0,0.0
+2026-08-05,22,Primary Chiller Unit,Cooling & HVAC,29.22,none,0.0,101.4,1.0
+2026-08-05,23,Compressor 03 (Screw),Compressed Air,25.22,none,0.0,0.0,0.0
+2026-08-05,23,Boiler 02 (Steam),Steam Generation,1.34,natural_gas,0.0,0.0,0.0
+2026-08-05,23,Stenter Frame Oven,Thermal Processing,1.86,natural_gas,0.0,0.0,0.0
+2026-08-05,23,Primary Chiller Unit,Cooling & HVAC,0.73,none,0.0,0.0,0.0
+2026-08-06,0,Compressor 03 (Screw),Compressed Air,25.52,none,0.0,0.0,0.0
+2026-08-06,0,Boiler 02 (Steam),Steam Generation,1.5,natural_gas,0.0,0.0,0.0
+2026-08-06,0,Stenter Frame Oven,Thermal Processing,1.79,natural_gas,0.0,0.0,0.0
+2026-08-06,0,Primary Chiller Unit,Cooling & HVAC,1.89,none,0.0,0.0,0.0
+2026-08-06,1,Compressor 03 (Screw),Compressed Air,25.59,none,0.0,0.0,0.0
+2026-08-06,1,Boiler 02 (Steam),Steam Generation,1.34,natural_gas,0.0,0.0,0.0
+2026-08-06,1,Stenter Frame Oven,Thermal Processing,0.79,natural_gas,0.0,0.0,0.0
+2026-08-06,1,Primary Chiller Unit,Cooling & HVAC,0.8,none,0.0,0.0,0.0
+2026-08-06,2,Compressor 03 (Screw),Compressed Air,23.37,none,0.0,0.0,0.0
+2026-08-06,2,Boiler 02 (Steam),Steam Generation,0.65,natural_gas,0.0,0.0,0.0
+2026-08-06,2,Stenter Frame Oven,Thermal Processing,1.57,natural_gas,0.0,0.0,0.0
+2026-08-06,2,Primary Chiller Unit,Cooling & HVAC,1.73,none,0.0,0.0,0.0
+2026-08-06,3,Compressor 03 (Screw),Compressed Air,23.51,none,0.0,0.0,0.0
+2026-08-06,3,Boiler 02 (Steam),Steam Generation,1.08,natural_gas,0.0,0.0,0.0
+2026-08-06,3,Stenter Frame Oven,Thermal Processing,0.72,natural_gas,0.0,0.0,0.0
+2026-08-06,3,Primary Chiller Unit,Cooling & HVAC,1.55,none,0.0,0.0,0.0
+2026-08-06,4,Compressor 03 (Screw),Compressed Air,24.22,none,0.0,0.0,0.0
+2026-08-06,4,Boiler 02 (Steam),Steam Generation,1.93,natural_gas,0.0,0.0,0.0
+2026-08-06,4,Stenter Frame Oven,Thermal Processing,1.91,natural_gas,0.0,0.0,0.0
+2026-08-06,4,Primary Chiller Unit,Cooling & HVAC,1.87,none,0.0,0.0,0.0
+2026-08-06,5,Compressor 03 (Screw),Compressed Air,25.19,none,0.0,0.0,0.0
+2026-08-06,5,Boiler 02 (Steam),Steam Generation,1.55,natural_gas,0.0,0.0,0.0
+2026-08-06,5,Stenter Frame Oven,Thermal Processing,1.72,natural_gas,0.0,0.0,0.0
+2026-08-06,5,Primary Chiller Unit,Cooling & HVAC,0.96,none,0.0,0.0,0.0
+2026-08-06,6,Compressor 03 (Screw),Compressed Air,32.11,none,0.0,102.3,1.0
+2026-08-06,6,Boiler 02 (Steam),Steam Generation,13.22,natural_gas,47.69,79.2,1.0
+2026-08-06,6,Stenter Frame Oven,Thermal Processing,1.97,natural_gas,0.0,0.0,0.0
+2026-08-06,6,Primary Chiller Unit,Cooling & HVAC,29.94,none,0.0,95.8,1.0
+2026-08-06,7,Compressor 03 (Screw),Compressed Air,32.87,none,0.0,85.0,1.0
+2026-08-06,7,Boiler 02 (Steam),Steam Generation,13.33,natural_gas,45.72,103.8,1.0
+2026-08-06,7,Stenter Frame Oven,Thermal Processing,49.12,natural_gas,33.37,78.0,1.0
+2026-08-06,7,Primary Chiller Unit,Cooling & HVAC,28.8,none,0.0,99.9,1.0
+2026-08-06,8,Compressor 03 (Screw),Compressed Air,30.79,none,0.0,88.3,1.0
+2026-08-06,8,Boiler 02 (Steam),Steam Generation,12.52,natural_gas,42.57,87.8,1.0
+2026-08-06,8,Stenter Frame Oven,Thermal Processing,47.26,natural_gas,30.48,93.7,1.0
+2026-08-06,8,Primary Chiller Unit,Cooling & HVAC,27.32,none,0.0,94.4,1.0
+2026-08-06,9,Compressor 03 (Screw),Compressed Air,33.68,none,0.0,80.7,1.0
+2026-08-06,9,Boiler 02 (Steam),Steam Generation,11.91,natural_gas,50.47,105.9,1.0
+2026-08-06,9,Stenter Frame Oven,Thermal Processing,47.26,natural_gas,29.9,101.9,1.0
+2026-08-06,9,Primary Chiller Unit,Cooling & HVAC,31.2,none,0.0,76.9,1.0
+2026-08-06,10,Compressor 03 (Screw),Compressed Air,32.7,none,0.0,83.0,1.0
+2026-08-06,10,Boiler 02 (Steam),Steam Generation,11.3,natural_gas,69.61,106.4,1.0
+2026-08-06,10,Stenter Frame Oven,Thermal Processing,44.71,natural_gas,31.1,99.2,1.0
+2026-08-06,10,Primary Chiller Unit,Cooling & HVAC,31.32,none,0.0,102.5,1.0
+2026-08-06,11,Compressor 03 (Screw),Compressed Air,35.25,none,0.0,81.2,1.0
+2026-08-06,11,Boiler 02 (Steam),Steam Generation,12.13,natural_gas,69.43,87.2,1.0
+2026-08-06,11,Stenter Frame Oven,Thermal Processing,46.43,natural_gas,34.48,103.1,1.0
+2026-08-06,11,Primary Chiller Unit,Cooling & HVAC,30.93,none,0.0,91.0,1.0
+2026-08-06,12,Compressor 03 (Screw),Compressed Air,35.14,none,0.0,91.8,1.0
+2026-08-06,12,Boiler 02 (Steam),Steam Generation,11.52,natural_gas,83.89,95.6,1.0
+2026-08-06,12,Stenter Frame Oven,Thermal Processing,44.13,natural_gas,33.47,101.1,1.0
+2026-08-06,12,Primary Chiller Unit,Cooling & HVAC,30.43,none,0.0,75.4,1.0
+2026-08-06,13,Compressor 03 (Screw),Compressed Air,35.78,none,0.0,89.9,1.0
+2026-08-06,13,Boiler 02 (Steam),Steam Generation,11.27,natural_gas,75.8,80.2,1.0
+2026-08-06,13,Stenter Frame Oven,Thermal Processing,48.61,natural_gas,30.54,80.4,1.0
+2026-08-06,13,Primary Chiller Unit,Cooling & HVAC,29.51,none,0.0,89.1,1.0
+2026-08-06,14,Compressor 03 (Screw),Compressed Air,33.33,none,0.0,86.8,1.0
+2026-08-06,14,Boiler 02 (Steam),Steam Generation,11.64,natural_gas,76.33,96.0,1.0
+2026-08-06,14,Stenter Frame Oven,Thermal Processing,48.5,natural_gas,32.82,99.3,1.0
+2026-08-06,14,Primary Chiller Unit,Cooling & HVAC,30.41,none,0.0,109.5,1.0
+2026-08-06,15,Compressor 03 (Screw),Compressed Air,34.71,none,0.0,107.3,1.0
+2026-08-06,15,Boiler 02 (Steam),Steam Generation,12.33,natural_gas,50.82,100.5,1.0
+2026-08-06,15,Stenter Frame Oven,Thermal Processing,48.59,natural_gas,30.94,102.3,1.0
+2026-08-06,15,Primary Chiller Unit,Cooling & HVAC,29.73,none,0.0,83.8,1.0
+2026-08-06,16,Compressor 03 (Screw),Compressed Air,34.69,none,0.0,81.3,1.0
+2026-08-06,16,Boiler 02 (Steam),Steam Generation,12.35,natural_gas,44.72,104.3,1.0
+2026-08-06,16,Stenter Frame Oven,Thermal Processing,45.24,natural_gas,30.89,79.7,1.0
+2026-08-06,16,Primary Chiller Unit,Cooling & HVAC,26.97,none,0.0,95.3,1.0
+2026-08-06,17,Compressor 03 (Screw),Compressed Air,32.65,none,0.0,77.5,1.0
+2026-08-06,17,Boiler 02 (Steam),Steam Generation,12.41,natural_gas,46.87,83.4,1.0
+2026-08-06,17,Stenter Frame Oven,Thermal Processing,47.67,natural_gas,30.96,98.2,1.0
+2026-08-06,17,Primary Chiller Unit,Cooling & HVAC,27.62,none,0.0,89.8,1.0
+2026-08-06,18,Compressor 03 (Screw),Compressed Air,35.35,none,0.0,102.3,1.0
+2026-08-06,18,Boiler 02 (Steam),Steam Generation,13.12,natural_gas,49.29,104.1,1.0
+2026-08-06,18,Stenter Frame Oven,Thermal Processing,45.62,natural_gas,28.37,99.7,1.0
+2026-08-06,18,Primary Chiller Unit,Cooling & HVAC,29.72,none,0.0,81.9,1.0
+2026-08-06,19,Compressor 03 (Screw),Compressed Air,30.86,none,0.0,91.7,1.0
+2026-08-06,19,Boiler 02 (Steam),Steam Generation,11.46,natural_gas,45.1,86.4,1.0
+2026-08-06,19,Stenter Frame Oven,Thermal Processing,43.93,natural_gas,29.58,105.9,1.0
+2026-08-06,19,Primary Chiller Unit,Cooling & HVAC,25.94,none,0.0,86.0,1.0
+2026-08-06,20,Compressor 03 (Screw),Compressed Air,30.15,none,0.0,96.6,1.0
+2026-08-06,20,Boiler 02 (Steam),Steam Generation,13.33,natural_gas,47.8,92.3,1.0
+2026-08-06,20,Stenter Frame Oven,Thermal Processing,47.86,natural_gas,30.17,98.6,1.0
+2026-08-06,20,Primary Chiller Unit,Cooling & HVAC,27.48,none,0.0,100.0,1.0
+2026-08-06,21,Compressor 03 (Screw),Compressed Air,33.09,none,0.0,86.2,1.0
+2026-08-06,21,Boiler 02 (Steam),Steam Generation,11.23,natural_gas,44.17,87.9,1.0
+2026-08-06,21,Stenter Frame Oven,Thermal Processing,1.21,natural_gas,0.0,0.0,0.0
+2026-08-06,21,Primary Chiller Unit,Cooling & HVAC,27.47,none,0.0,98.7,1.0
+2026-08-06,22,Compressor 03 (Screw),Compressed Air,26.21,none,0.0,0.0,0.0
+2026-08-06,22,Boiler 02 (Steam),Steam Generation,1.78,natural_gas,0.0,0.0,0.0
+2026-08-06,22,Stenter Frame Oven,Thermal Processing,0.67,natural_gas,0.0,0.0,0.0
+2026-08-06,22,Primary Chiller Unit,Cooling & HVAC,30.55,none,0.0,82.7,1.0
+2026-08-06,23,Compressor 03 (Screw),Compressed Air,23.8,none,0.0,0.0,0.0
+2026-08-06,23,Boiler 02 (Steam),Steam Generation,0.51,natural_gas,0.0,0.0,0.0
+2026-08-06,23,Stenter Frame Oven,Thermal Processing,1.09,natural_gas,0.0,0.0,0.0
+2026-08-06,23,Primary Chiller Unit,Cooling & HVAC,0.83,none,0.0,0.0,0.0
+2026-08-07,0,Compressor 03 (Screw),Compressed Air,25.82,none,0.0,0.0,0.0
+2026-08-07,0,Boiler 02 (Steam),Steam Generation,1.43,natural_gas,0.0,0.0,0.0
+2026-08-07,0,Stenter Frame Oven,Thermal Processing,1.28,natural_gas,0.0,0.0,0.0
+2026-08-07,0,Primary Chiller Unit,Cooling & HVAC,1.31,none,0.0,0.0,0.0
+2026-08-07,1,Compressor 03 (Screw),Compressed Air,23.4,none,0.0,0.0,0.0
+2026-08-07,1,Boiler 02 (Steam),Steam Generation,1.39,natural_gas,0.0,0.0,0.0
+2026-08-07,1,Stenter Frame Oven,Thermal Processing,1.16,natural_gas,0.0,0.0,0.0
+2026-08-07,1,Primary Chiller Unit,Cooling & HVAC,1.52,none,0.0,0.0,0.0
+2026-08-07,2,Compressor 03 (Screw),Compressed Air,24.16,none,0.0,0.0,0.0
+2026-08-07,2,Boiler 02 (Steam),Steam Generation,0.63,natural_gas,0.0,0.0,0.0
+2026-08-07,2,Stenter Frame Oven,Thermal Processing,0.69,natural_gas,0.0,0.0,0.0
+2026-08-07,2,Primary Chiller Unit,Cooling & HVAC,1.67,none,0.0,0.0,0.0
+2026-08-07,3,Compressor 03 (Screw),Compressed Air,23.67,none,0.0,0.0,0.0
+2026-08-07,3,Boiler 02 (Steam),Steam Generation,0.75,natural_gas,0.0,0.0,0.0
+2026-08-07,3,Stenter Frame Oven,Thermal Processing,1.84,natural_gas,0.0,0.0,0.0
+2026-08-07,3,Primary Chiller Unit,Cooling & HVAC,0.86,none,0.0,0.0,0.0
+2026-08-07,4,Compressor 03 (Screw),Compressed Air,27.24,none,0.0,0.0,0.0
+2026-08-07,4,Boiler 02 (Steam),Steam Generation,0.84,natural_gas,0.0,0.0,0.0
+2026-08-07,4,Stenter Frame Oven,Thermal Processing,0.81,natural_gas,0.0,0.0,0.0
+2026-08-07,4,Primary Chiller Unit,Cooling & HVAC,2.0,none,0.0,0.0,0.0
+2026-08-07,5,Compressor 03 (Screw),Compressed Air,23.04,none,0.0,0.0,0.0
+2026-08-07,5,Boiler 02 (Steam),Steam Generation,1.23,natural_gas,0.0,0.0,0.0
+2026-08-07,5,Stenter Frame Oven,Thermal Processing,1.96,natural_gas,0.0,0.0,0.0
+2026-08-07,5,Primary Chiller Unit,Cooling & HVAC,1.01,none,0.0,0.0,0.0
+2026-08-07,6,Compressor 03 (Screw),Compressed Air,32.93,none,0.0,81.0,1.0
+2026-08-07,6,Boiler 02 (Steam),Steam Generation,12.03,natural_gas,47.34,80.6,1.0
+2026-08-07,6,Stenter Frame Oven,Thermal Processing,0.94,natural_gas,0.0,0.0,0.0
+2026-08-07,6,Primary Chiller Unit,Cooling & HVAC,27.78,none,0.0,78.1,1.0
+2026-08-07,7,Compressor 03 (Screw),Compressed Air,32.31,none,0.0,98.7,1.0
+2026-08-07,7,Boiler 02 (Steam),Steam Generation,12.47,natural_gas,46.74,98.4,1.0
+2026-08-07,7,Stenter Frame Oven,Thermal Processing,45.23,natural_gas,32.57,103.3,1.0
+2026-08-07,7,Primary Chiller Unit,Cooling & HVAC,28.22,none,0.0,100.4,1.0
+2026-08-07,8,Compressor 03 (Screw),Compressed Air,32.95,none,0.0,82.5,1.0
+2026-08-07,8,Boiler 02 (Steam),Steam Generation,12.69,natural_gas,50.0,92.2,1.0
+2026-08-07,8,Stenter Frame Oven,Thermal Processing,45.49,natural_gas,31.96,95.4,1.0
+2026-08-07,8,Primary Chiller Unit,Cooling & HVAC,27.33,none,0.0,84.8,1.0
+2026-08-07,9,Compressor 03 (Screw),Compressed Air,31.06,none,0.0,86.9,1.0
+2026-08-07,9,Boiler 02 (Steam),Steam Generation,11.95,natural_gas,46.83,96.6,1.0
+2026-08-07,9,Stenter Frame Oven,Thermal Processing,44.36,natural_gas,33.63,87.6,1.0
+2026-08-07,9,Primary Chiller Unit,Cooling & HVAC,29.88,none,0.0,105.3,1.0
+2026-08-07,10,Compressor 03 (Screw),Compressed Air,32.73,none,0.0,78.1,1.0
+2026-08-07,10,Boiler 02 (Steam),Steam Generation,12.97,natural_gas,51.07,90.4,1.0
+2026-08-07,10,Stenter Frame Oven,Thermal Processing,41.77,natural_gas,30.7,87.5,1.0
+2026-08-07,10,Primary Chiller Unit,Cooling & HVAC,28.82,none,0.0,97.2,1.0
+2026-08-07,11,Compressor 03 (Screw),Compressed Air,31.56,none,0.0,84.0,1.0
+2026-08-07,11,Boiler 02 (Steam),Steam Generation,12.73,natural_gas,51.47,78.5,1.0
+2026-08-07,11,Stenter Frame Oven,Thermal Processing,49.53,natural_gas,31.64,86.7,1.0
+2026-08-07,11,Primary Chiller Unit,Cooling & HVAC,27.84,none,0.0,93.8,1.0
+2026-08-07,12,Compressor 03 (Screw),Compressed Air,34.97,none,0.0,86.4,1.0
+2026-08-07,12,Boiler 02 (Steam),Steam Generation,11.13,natural_gas,46.45,103.9,1.0
+2026-08-07,12,Stenter Frame Oven,Thermal Processing,47.22,natural_gas,30.19,98.6,1.0
+2026-08-07,12,Primary Chiller Unit,Cooling & HVAC,28.14,none,0.0,101.0,1.0
+2026-08-07,13,Compressor 03 (Screw),Compressed Air,34.19,none,0.0,75.2,1.0
+2026-08-07,13,Boiler 02 (Steam),Steam Generation,12.06,natural_gas,46.56,86.4,1.0
+2026-08-07,13,Stenter Frame Oven,Thermal Processing,43.11,natural_gas,27.67,84.5,1.0
+2026-08-07,13,Primary Chiller Unit,Cooling & HVAC,25.93,none,0.0,88.1,1.0
+2026-08-07,14,Compressor 03 (Screw),Compressed Air,35.13,none,0.0,81.6,1.0
+2026-08-07,14,Boiler 02 (Steam),Steam Generation,13.17,natural_gas,42.63,91.0,1.0
+2026-08-07,14,Stenter Frame Oven,Thermal Processing,43.88,natural_gas,33.14,87.0,1.0
+2026-08-07,14,Primary Chiller Unit,Cooling & HVAC,31.11,none,0.0,97.6,1.0
+2026-08-07,15,Compressor 03 (Screw),Compressed Air,32.4,none,0.0,102.2,1.0
+2026-08-07,15,Boiler 02 (Steam),Steam Generation,11.96,natural_gas,44.47,80.8,1.0
+2026-08-07,15,Stenter Frame Oven,Thermal Processing,43.97,natural_gas,31.85,98.2,1.0
+2026-08-07,15,Primary Chiller Unit,Cooling & HVAC,26.63,none,0.0,107.8,1.0
+2026-08-07,16,Compressor 03 (Screw),Compressed Air,34.94,none,0.0,77.6,1.0
+2026-08-07,16,Boiler 02 (Steam),Steam Generation,11.84,natural_gas,47.2,105.0,1.0
+2026-08-07,16,Stenter Frame Oven,Thermal Processing,48.66,natural_gas,27.31,77.7,1.0
+2026-08-07,16,Primary Chiller Unit,Cooling & HVAC,26.68,none,0.0,91.7,1.0
+2026-08-07,17,Compressor 03 (Screw),Compressed Air,33.23,none,0.0,83.2,1.0
+2026-08-07,17,Boiler 02 (Steam),Steam Generation,13.15,natural_gas,50.58,89.3,1.0
+2026-08-07,17,Stenter Frame Oven,Thermal Processing,48.5,natural_gas,28.96,78.1,1.0
+2026-08-07,17,Primary Chiller Unit,Cooling & HVAC,26.6,none,0.0,109.8,1.0
+2026-08-07,18,Compressor 03 (Screw),Compressed Air,32.18,none,0.0,101.1,1.0
+2026-08-07,18,Boiler 02 (Steam),Steam Generation,11.74,natural_gas,42.09,98.5,1.0
+2026-08-07,18,Stenter Frame Oven,Thermal Processing,41.53,natural_gas,32.42,93.3,1.0
+2026-08-07,18,Primary Chiller Unit,Cooling & HVAC,26.35,none,0.0,93.8,1.0
+2026-08-07,19,Compressor 03 (Screw),Compressed Air,35.14,none,0.0,98.4,1.0
+2026-08-07,19,Boiler 02 (Steam),Steam Generation,11.09,natural_gas,49.52,100.3,1.0
+2026-08-07,19,Stenter Frame Oven,Thermal Processing,43.5,natural_gas,28.91,92.9,1.0
+2026-08-07,19,Primary Chiller Unit,Cooling & HVAC,31.26,none,0.0,103.1,1.0
+2026-08-07,20,Compressor 03 (Screw),Compressed Air,32.72,none,0.0,105.4,1.0
+2026-08-07,20,Boiler 02 (Steam),Steam Generation,11.56,natural_gas,50.04,100.5,1.0
+2026-08-07,20,Stenter Frame Oven,Thermal Processing,44.69,natural_gas,29.46,105.3,1.0
+2026-08-07,20,Primary Chiller Unit,Cooling & HVAC,26.23,none,0.0,79.5,1.0
+2026-08-07,21,Compressor 03 (Screw),Compressed Air,32.51,none,0.0,89.4,1.0
+2026-08-07,21,Boiler 02 (Steam),Steam Generation,11.95,natural_gas,41.12,91.2,1.0
+2026-08-07,21,Stenter Frame Oven,Thermal Processing,1.7,natural_gas,0.0,0.0,0.0
+2026-08-07,21,Primary Chiller Unit,Cooling & HVAC,29.54,none,0.0,108.9,1.0
+2026-08-07,22,Compressor 03 (Screw),Compressed Air,24.31,none,0.0,0.0,0.0
+2026-08-07,22,Boiler 02 (Steam),Steam Generation,0.94,natural_gas,0.0,0.0,0.0
+2026-08-07,22,Stenter Frame Oven,Thermal Processing,1.8,natural_gas,0.0,0.0,0.0
+2026-08-07,22,Primary Chiller Unit,Cooling & HVAC,26.87,none,0.0,105.3,1.0
+2026-08-07,23,Compressor 03 (Screw),Compressed Air,23.48,none,0.0,0.0,0.0
+2026-08-07,23,Boiler 02 (Steam),Steam Generation,1.08,natural_gas,0.0,0.0,0.0
+2026-08-07,23,Stenter Frame Oven,Thermal Processing,1.1,natural_gas,0.0,0.0,0.0
+2026-08-07,23,Primary Chiller Unit,Cooling & HVAC,0.6,none,0.0,0.0,0.0

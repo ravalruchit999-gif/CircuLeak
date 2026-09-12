@@ -1,0 +1,19 @@
+{
+  "python.defaultInterpreterPath": "C:\\Program Files\\Python314\\python.exe",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportArgumentType": "none",
+    "reportAttributeAccessIssue": "none",
+    "reportCallIssue": "none",
+    "reportOptionalMemberAccess": "none",
+    "reportGeneralTypeIssues": "none"
+  },
+  "python.analysis.extraPaths": [
+    "D:/CircuLeak/CircuLeak/backend",
+    "${workspaceFolder}"
+  ],
+  "python.autoComplete.extraPaths": [
+    "D:/CircuLeak/CircuLeak/backend",
+    "${workspaceFolder}"
+  ]
+}
