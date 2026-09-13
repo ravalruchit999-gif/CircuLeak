@@ -65,21 +65,62 @@ export async function getLeakAnomalies(facilityId) {
 }
 
 export async function getLeakById(leakId, facilityId) {
+  // Normalize ID (e.g., "LEAK-01" -> 1)
+  let numericId = leakId;
+  if (typeof leakId === 'string' && leakId.startsWith('LEAK-')) {
+    const parsed = parseInt(leakId.replace('LEAK-', ''), 10);
+    if (!isNaN(parsed)) numericId = parsed;
+  }
+
   try {
-    const res = await apiRequest(ENDPOINTS.LEAK_BY_ID(leakId), {
+    const res = await apiRequest(ENDPOINTS.INCIDENT_BY_ID(numericId), {
       method: 'GET',
     });
     return res;
   } catch (err) {
-    // If standalone endpoint not available, find from facility anomalies list
-    if (facilityId) {
-      const allRes = await getLeakAnomalies(facilityId);
-      const leaks = allRes.data?.leaks || [];
-      const found = leaks.find((l) => l.id === leakId || String(l.raw_id) === String(leakId));
-      if (found) {
-        return { success: true, data: found, isMock: false };
+    try {
+      const res = await apiRequest(ENDPOINTS.LEAK_BY_ID(numericId), {
+        method: 'GET',
+      });
+      return res;
+    } catch (fallbackErr) {
+      if (facilityId) {
+        const allRes = await getLeakAnomalies(facilityId);
+        const leaks = allRes.data?.leaks || [];
+        const found = leaks.find((l) => l.id === leakId || String(l.raw_id) === String(numericId));
+        if (found) {
+          return { success: true, data: found, isMock: false };
+        }
       }
+      throw err;
     }
-    throw err;
   }
 }
+
+export async function updateIncidentStatus(incidentId, status, note = '') {
+  let numericId = incidentId;
+  if (typeof incidentId === 'string' && incidentId.startsWith('LEAK-')) {
+    const parsed = parseInt(incidentId.replace('LEAK-', ''), 10);
+    if (!isNaN(parsed)) numericId = parsed;
+  }
+
+  const res = await apiRequest(ENDPOINTS.INCIDENT_STATUS_UPDATE(numericId), {
+    method: 'PATCH',
+    body: { status, note },
+  });
+  return res;
+}
+
+export async function getIncidentWhyAnalysis(incidentId) {
+  let numericId = incidentId;
+  if (typeof incidentId === 'string' && incidentId.startsWith('LEAK-')) {
+    const parsed = parseInt(incidentId.replace('LEAK-', ''), 10);
+    if (!isNaN(parsed)) numericId = parsed;
+  }
+
+  const res = await apiRequest(ENDPOINTS.INCIDENT_WHY(numericId), {
+    method: 'GET',
+  });
+  return res;
+}
+

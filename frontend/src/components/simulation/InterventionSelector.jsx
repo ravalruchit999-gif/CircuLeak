@@ -13,17 +13,17 @@ export function InterventionSelector({
       title="Candidate Interventions"
       subtitle="Toggle solutions to model aggregate decarbonization and financial impact"
     >
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start auto-rows-max">
         {interventions.map((item) => {
           const isSelected = selectedIds.includes(item.id);
           return (
             <div
               key={item.id}
               onClick={() => onToggle(item.id)}
-              className={`p-3.5 rounded border transition-all cursor-pointer select-none flex items-start gap-3 ${
+              className={`p-3.5 rounded-lg border transition-all cursor-pointer select-none flex items-start gap-3 ${
                 isSelected
-                  ? 'bg-[#151c27] border-emerald-600/70 shadow-sm'
-                  : 'bg-[#13161f] border-[#222836] hover:border-slate-600 opacity-80'
+                  ? 'bg-[#151f2b] border-emerald-500/80 shadow-sm shadow-emerald-950/40'
+                  : 'bg-[#13161f] border-[#222836] hover:border-slate-600 hover:bg-[#161a24] opacity-90'
               }`}
             >
               {/* Checkbox box */}
@@ -38,16 +38,16 @@ export function InterventionSelector({
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <h4 className="text-xs font-semibold text-slate-100 truncate">
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <h4 className="text-xs font-semibold text-slate-100 leading-snug">
                     {item.title}
                   </h4>
-                  <span className="text-xs font-mono font-bold text-emerald-400 shrink-0">
-                    -{item.co2_reduction} kg/day
+                  <span className="text-xs font-mono font-bold text-emerald-400 shrink-0 whitespace-nowrap">
+                    -{Number(item.co2_reduction).toLocaleString()} kg/day
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-400">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-mono text-slate-400">
                   <span>Target: <strong className="text-slate-300">{item.target}</strong></span>
                   <span>Capex: <strong className="text-slate-200">{formatCurrency(item.investment)}</strong></span>
                   <span>Savings: <strong className="text-emerald-400">{formatCurrency(item.annual_savings)}/yr</strong></span>

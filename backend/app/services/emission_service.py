@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
@@ -9,12 +10,72 @@ from app.models.emission_factor import EmissionFactor
 class EmissionService:
     @staticmethod
     def get_grid_electricity_factor(db: Session) -> float:
-        """Retrieve active grid electricity factor from database (fallback 0.716)."""
+        """Retrieve active grid electricity factor from database; raises ValueError if unconfigured."""
         ef = db.query(EmissionFactor).filter(
             EmissionFactor.source_name == "grid_electricity",
             EmissionFactor.is_active == True
         ).first()
-        return ef.factor_value if ef else 0.716
+        if not ef:
+            raise ValueError("No active grid electricity emission factor configured in database.")
+        return ef.factor_value
+
+    @staticmethod
+    def get_factor_for_telemetry(
+        db: Session,
+        source_name: str,
+        telemetry_timestamp: Optional[datetime.datetime] = None
+    ) -> EmissionFactor:
+        """
+        Select emission factor valid at telemetry_timestamp:
+        effective_from <= telemetry_timestamp AND (effective_to IS NULL OR telemetry_timestamp < effective_to).
+        Raises ValueError if no valid factor covers this timestamp.
+        """
+        clean_name = source_name.lower().strip().replace(" ", "_").replace("-", "_")
+        aliases = [clean_name]
+        if clean_name in ["electricity", "grid"]:
+            aliases.append("grid_electricity")
+        elif clean_name == "grid_electricity":
+            aliases.append("electricity")
+
+        factors = db.query(EmissionFactor).filter(
+            EmissionFactor.is_active == True,
+            EmissionFactor.source_name.in_(aliases)
+        ).all()
+
+        if not factors:
+            # Fallback to case-insensitive match over all active factors
+            all_active = db.query(EmissionFactor).filter(EmissionFactor.is_active == True).all()
+            factors = [f for f in all_active if f.source_name.lower().strip() in aliases]
+
+        if not factors:
+            raise ValueError(f"No active emission factor configured for source '{source_name}'.")
+
+        if telemetry_timestamp is None:
+            return factors[0]
+
+        valid_factors = []
+        for f in factors:
+            from_ok = (f.effective_from is None) or (f.effective_from <= telemetry_timestamp)
+            to_ok = (f.effective_to is None) or (telemetry_timestamp < f.effective_to)
+            if from_ok and to_ok:
+                valid_factors.append(f)
+
+        if not valid_factors:
+            raise ValueError(
+                f"No valid emission factor found for '{source_name}' at telemetry timestamp {telemetry_timestamp}. "
+                "Validity windows do not cover this timestamp."
+            )
+
+        # Prioritize factor with non-null effective_from closest to timestamp, then highest id
+        valid_factors.sort(
+            key=lambda f: (
+                f.effective_from is not None,
+                f.effective_from or datetime.datetime.min,
+                f.id or 0
+            ),
+            reverse=True
+        )
+        return valid_factors[0]
 
     @staticmethod
     def get_active_factors_lookup(db: Session) -> Dict[str, EmissionFactor]:

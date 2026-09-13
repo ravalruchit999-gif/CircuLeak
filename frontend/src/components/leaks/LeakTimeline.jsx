@@ -10,7 +10,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { SectionCard } from '../ui/SectionCard';
-import { customTooltipStyle } from '../../utils/chartHelpers';
+import { customTooltipStyle, customItemStyle, customLabelStyle } from '../../utils/chartHelpers';
 
 export function LeakTimeline({ timeline = [] }) {
   if (!timeline || timeline.length === 0) return null;
@@ -38,6 +38,8 @@ export function LeakTimeline({ timeline = [] }) {
             <YAxis tick={{ fill: '#64748b', fontSize: 11 }} unit=" kWh" domain={['auto', 'auto']} />
             <Tooltip
               contentStyle={customTooltipStyle}
+              itemStyle={customItemStyle}
+              labelStyle={customLabelStyle}
               formatter={(val, name) => [`${val} kWh`, name]}
             />
             <ReferenceLine

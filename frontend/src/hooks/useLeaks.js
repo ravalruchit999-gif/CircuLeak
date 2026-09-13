@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useFacilityContext } from '../context/FacilityContext';
-import { getLeakAnomalies, getLeakById } from '../services/leaksApi';
+import { getLeakAnomalies, getLeakById, updateIncidentStatus } from '../services/leaksApi';
 
 export function useLeaks(selectedLeakId = null) {
   const { currentFacilityId } = useFacilityContext();
@@ -8,6 +8,7 @@ export function useLeaks(selectedLeakId = null) {
   const [selectedLeak, setSelectedLeak] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mutationLoading, setMutationLoading] = useState(false);
 
   const fetchLeaks = useCallback(async () => {
     if (!currentFacilityId && !selectedLeakId) {
@@ -34,9 +35,34 @@ export function useLeaks(selectedLeakId = null) {
     }
   }, [currentFacilityId, selectedLeakId]);
 
+  const mutateStatus = useCallback(async (newStatus, note = '') => {
+    if (!selectedLeakId) return;
+    setMutationLoading(true);
+    try {
+      const response = await updateIncidentStatus(selectedLeakId, newStatus, note);
+      if (response?.data) {
+        setSelectedLeak(response.data);
+      }
+      return response?.data;
+    } catch (err) {
+      throw err;
+    } finally {
+      setMutationLoading(false);
+    }
+  }, [selectedLeakId]);
+
   useEffect(() => {
     fetchLeaks();
   }, [fetchLeaks]);
 
-  return { leaksData, selectedLeak, loading, error, refetch: fetchLeaks };
+  return {
+    leaksData,
+    selectedLeak,
+    loading,
+    error,
+    refetch: fetchLeaks,
+    mutateStatus,
+    mutationLoading
+  };
 }
+

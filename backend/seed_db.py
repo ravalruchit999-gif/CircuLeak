@@ -154,6 +154,29 @@ def seed_database():
             db.commit()
             print("Default authentication credentials ready!")
 
+        # 5. Seed Authoritative Intervention Catalog
+        from app.models.recommendation import Recommendation
+        from app.data.recommendations import DEFAULT_RECOMMENDATIONS
+
+        print("Seeding/updating authoritative intervention catalog in database...")
+        for rec_data in DEFAULT_RECOMMENDATIONS:
+            # Filter out non-model keys like 'keywords' if not in model
+            rec_id = rec_data["id"]
+            existing_rec = db.query(Recommendation).filter(Recommendation.id == rec_id).first()
+            
+            # Extract fields that map to Recommendation model columns
+            model_fields = {c.name for c in Recommendation.__table__.columns}
+            filtered_data = {k: v for k, v in rec_data.items() if k in model_fields}
+            
+            if existing_rec:
+                for k, v in filtered_data.items():
+                    setattr(existing_rec, k, v)
+            else:
+                new_rec = Recommendation(**filtered_data)
+                db.add(new_rec)
+        db.commit()
+        print(f"Seeded {len(DEFAULT_RECOMMENDATIONS)} authoritative intervention pathways into database.")
+
     except Exception as e:
         print(f"Error seeding database: {e}")
         db.rollback()

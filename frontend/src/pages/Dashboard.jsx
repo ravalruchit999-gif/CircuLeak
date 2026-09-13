@@ -68,6 +68,39 @@ export function Dashboard() {
         }
       />
 
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-5 border-b border-[#1b2230]">
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 shadow-sm"
+        >
+          <span>Executive Overview</span>
+        </Link>
+        <Link
+          to="/emissions"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-colors"
+        >
+          <span>Scope 1 & 2 Emissions</span>
+        </Link>
+        <Link
+          to="/benchmark"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-colors"
+        >
+          <span>Peer Benchmarking</span>
+        </Link>
+        <Link
+          to="/circularity"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-colors"
+        >
+          <span>Circularity Index (MCI)</span>
+        </Link>
+        <Link
+          to="/data-upload"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent hover:border-slate-700/60 transition-colors ml-auto"
+        >
+          <span>+ Upload Telemetry</span>
+        </Link>
+      </div>
+
       <DashboardOverview data={data} />
     </div>
   );

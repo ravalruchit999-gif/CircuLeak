@@ -23,7 +23,7 @@ export function SectionCard({
           {action && <div className="flex items-center gap-2">{action}</div>}
         </div>
       )}
-      <div className={`flex-1 flex flex-col justify-between ${bodyClassName}`}>{children}</div>
+      <div className={`flex-1 flex flex-col ${bodyClassName}`}>{children}</div>
     </div>
   );
 }

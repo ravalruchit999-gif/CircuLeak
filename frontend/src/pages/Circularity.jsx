@@ -6,13 +6,15 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { useCircularity } from '../hooks/useCircularity';
 import { CircularityScore } from '../components/circularity/CircularityScore';
 import { CircularityBreakdown } from '../components/circularity/CircularityBreakdown';
+import { IndustrialSymbiosisCard } from '../components/circularity/IndustrialSymbiosisCard';
+import { CCTSMonetizerCard } from '../components/simulation/CCTSMonetizerCard';
 import { CircularityImprovement } from '../components/circularity/CircularityImprovement';
 import { Button } from '../components/ui/Button';
 import { FileText, Sliders, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Circularity() {
-  const { data, loading, error, refetch } = useCircularity();
+  const { data, symbiosisData, loading, error, refetch } = useCircularity();
 
   if (loading) {
     return (
@@ -46,7 +48,7 @@ export function Circularity() {
           title="Circularity Assessment Awaiting Telemetry"
           description="Circularity scoring evaluates material reuse, waste heat loops, and renewable power substitution from ingested operational energy and fuel data."
           actionText="Upload Telemetry Dataset"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
 
         {data?.missing_inputs && data.missing_inputs.length > 0 && (
@@ -104,7 +106,21 @@ export function Circularity() {
         <CircularityBreakdown pillars={data.pillars} />
       )}
 
+      {symbiosisData && symbiosisData.streams && symbiosisData.streams.length > 0 && (
+        <IndustrialSymbiosisCard
+          symbiosisData={symbiosisData}
+          facilityId={data?.facility_id}
+          onRefresh={refetch}
+        />
+      )}
+
       <CircularityImprovement delta={data.score_delta} />
+
+      {/* National Carbon Credit Trading Scheme (BEE CCTS) Monetization */}
+      <CCTSMonetizerCard
+        facilityId={data?.facility_id}
+        simulatedAbatementKg={0}
+      />
     </div>
   );
 }

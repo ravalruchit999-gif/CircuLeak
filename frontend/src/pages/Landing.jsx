@@ -308,7 +308,7 @@ export function Landing() {
               </div>
               <h3 className="text-base font-semibold text-white">5-Year Net-Zero Trajectory</h3>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                Forecasts business-as-usual emissions vs planned intervention phase-ins through 2030, showing cumulative carbon offset milestones and recurring operational savings.
+                Models 5-year business-as-usual emissions vs planned intervention scenarios through 2030, showing cumulative carbon offset milestones and recurring operational savings.
               </p>
             </div>
 

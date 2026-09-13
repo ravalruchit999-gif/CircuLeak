@@ -15,7 +15,7 @@ import {
   recalculateBenchmarks,
 } from '../services/adminApi';
 import { useFacilityContext } from '../context/FacilityContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -33,9 +33,13 @@ import { Button } from '../components/ui/Button';
 
 export function AdminPanel() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setCurrentFacilityId, setFacilityName } = useFacilityContext();
 
-  const [activeTab, setActiveTab] = useState('overview'); // overview, uploads, audit_logs, benchmarks
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (newTab) => {
+    setSearchParams({ tab: newTab });
+  };
   const [stats, setStats] = useState(null);
   const [facilities, setFacilities] = useState([]);
   const [users, setUsers] = useState([]);
@@ -46,6 +50,7 @@ export function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [error, setError] = useState(null);
+  const [benchmarkNotice, setBenchmarkNotice] = useState(null);
 
   const fetchAdminData = async () => {
     setLoading(true);
@@ -87,12 +92,20 @@ export function AdminPanel() {
 
   const handleRecalculateBenchmarks = async () => {
     setIsRecalculating(true);
+    setBenchmarkNotice(null);
     try {
-      await recalculateBenchmarks();
+      const res = await recalculateBenchmarks();
       const benchRes = await getAdminBenchmarks();
       setBenchmarks(benchRes.data || []);
+      setBenchmarkNotice({
+        type: 'success',
+        message: res.data?.message || 'Sector benchmarks recalculated successfully from national standards.'
+      });
     } catch (err) {
-      setError('Benchmark calculation notice: ' + err.message);
+      setBenchmarkNotice({
+        type: 'error',
+        message: 'Benchmark calculation notice: ' + err.message
+      });
     } finally {
       setIsRecalculating(false);
     }
@@ -379,7 +392,7 @@ export function AdminPanel() {
                       </td>
                       <td className="py-2.5 px-3 text-center">
                         <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px]">
-                          {Math.round(u.quality_score || 90)}% ({u.quality_level || 'HIGH'})
+                          {u.quality_score != null ? `${Math.round(u.quality_score)}%` : '—'} ({u.quality_level ? u.quality_level.toUpperCase() : 'PENDING'})
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-right text-slate-400 text-[11px]">
@@ -449,6 +462,25 @@ export function AdminPanel() {
           title="Cross-Facility Sector Benchmark Standards"
           subtitle="Dynamic benchmarks derived from actual monitored facilities and national sectoral baselines"
         >
+          {benchmarkNotice && (
+            <div
+              className={`p-3 rounded text-xs mb-4 flex items-center justify-between border ${
+                benchmarkNotice.type === 'success'
+                  ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800'
+                  : 'bg-rose-950/50 text-rose-300 border-rose-800'
+              }`}
+            >
+              <span>{benchmarkNotice.message}</span>
+              <button
+                type="button"
+                onClick={() => setBenchmarkNotice(null)}
+                className="text-slate-400 hover:text-white text-xs ml-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {benchmarks.length === 0 ? (
             <div className="text-center py-8 text-xs text-slate-400 font-mono space-y-2">
               <p>No sector benchmarks calculated yet.</p>
@@ -462,37 +494,53 @@ export function AdminPanel() {
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <thead>
-                  <tr className="border-b border-[#232d3e] text-slate-400 uppercase text-[10px] tracking-wider">
-                    <th className="pb-2.5 px-3">Sector</th>
-                    <th className="pb-2.5 px-3 text-right">Intensity Benchmark</th>
-                    <th className="pb-2.5 px-3 text-right">Top 10% Decile</th>
-                    <th className="pb-2.5 px-3 text-center">Facility Count</th>
-                    <th className="pb-2.5 px-3 text-right">Last Updated</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1e2533]">
-                  {benchmarks.map((b) => (
-                    <tr key={b.id} className="hover:bg-[#151a24]">
-                      <td className="py-2.5 px-3 font-semibold text-slate-100">{b.sector}</td>
-                      <td className="py-2.5 px-3 text-right text-emerald-400 font-bold">
-                        {b.average_intensity} <span className="text-slate-400 text-[10px]">{b.unit}</span>
-                      </td>
-                      <td className="py-2.5 px-3 text-right text-slate-300">
-                        {b.top_10_percent_intensity} <span className="text-slate-500 text-[10px]">{b.unit}</span>
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-slate-200">
-                        {b.facility_count || 1}
-                      </td>
-                      <td className="py-2.5 px-3 text-right text-slate-400 text-[11px]">
-                        {b.updated_at ? new Date(b.updated_at).toLocaleDateString() : 'Active'}
-                      </td>
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-[#212735]">
+                <p className="text-xs text-slate-400">
+                  Regulatory emission intensity baselines calibrated against India CCTS standards and BEE PAT cycles.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  loading={isRecalculating}
+                  onClick={handleRecalculateBenchmarks}
+                >
+                  Recalculate Benchmarks
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead>
+                    <tr className="border-b border-[#232d3e] text-slate-400 uppercase text-[10px] tracking-wider">
+                      <th className="pb-2.5 px-3">Sector</th>
+                      <th className="pb-2.5 px-3 text-right">Intensity Benchmark</th>
+                      <th className="pb-2.5 px-3 text-right">Top 10% Decile</th>
+                      <th className="pb-2.5 px-3 text-center">Facility Count</th>
+                      <th className="pb-2.5 px-3 text-right">Last Updated</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#1e2533]">
+                    {benchmarks.map((b) => (
+                      <tr key={b.id} className="hover:bg-[#151a24]">
+                        <td className="py-2.5 px-3 font-semibold text-slate-100">{b.sector}</td>
+                        <td className="py-2.5 px-3 text-right text-emerald-400 font-bold">
+                          {b.average_intensity ?? b.average_emission_intensity} <span className="text-slate-400 text-[10px]">{b.unit}</span>
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-300">
+                          {b.top_10_percent_intensity ?? b.best_in_class_intensity} <span className="text-slate-500 text-[10px]">{b.unit}</span>
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-slate-200">
+                          {b.facility_count ?? b.sample_size ?? 1}
+                        </td>
+                        <td className="py-2.5 px-3 text-right text-slate-400 text-[11px]">
+                          {b.updated_at ? new Date(b.updated_at).toLocaleDateString() : 'Active'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </SectionCard>

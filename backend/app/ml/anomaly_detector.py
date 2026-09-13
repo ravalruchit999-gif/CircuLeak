@@ -78,7 +78,12 @@ class AnomalyDetector:
 
             if len(X) >= 10:
                 try:
-                    iso = IsolationForest(contamination=self.contamination, random_state=42)
+                    iso = IsolationForest(
+                        contamination=self.contamination,
+                        random_state=42,
+                        n_estimators=60,
+                        n_jobs=-1
+                    )
                     preds = iso.fit_predict(X)
                     scores = -iso.score_samples(X)  # higher means more abnormal
 

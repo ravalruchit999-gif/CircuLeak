@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Zap, CheckCircle2, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
+import { Sparkles, Zap, CheckCircle2, ArrowRight, ShieldCheck, Cpu, UploadCloud } from 'lucide-react';
 import { SectionCard } from '../ui/SectionCard';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../utils/formatters';
@@ -64,12 +64,17 @@ export function ReductionPotential() {
         subtitle="Ranked circular interventions formulated to eliminate carbon leaks and optimize thermal recovery"
         className="h-full flex flex-col justify-between"
       >
-        <div className="h-44 border border-dashed border-[#232c3d] rounded-lg flex flex-col items-center justify-center text-center p-6 bg-[#0f1219]/60">
+        <div className="h-48 border border-dashed border-[#232c3d] rounded-lg flex flex-col items-center justify-center text-center p-6 bg-[#0f1219]/60">
           <Cpu className="w-8 h-8 text-slate-600 mb-2" />
           <h5 className="text-xs font-semibold text-slate-300">No Circular Solutions Formulated</h5>
-          <p className="text-[11px] text-slate-500 max-w-sm mt-1">
+          <p className="text-[11px] text-slate-500 max-w-sm mt-1 mb-3">
             Intervention packages and capital breakeven projections will generate dynamically once equipment telemetry has been uploaded.
           </p>
+          <Link to="/data-upload">
+            <Button variant="secondary" size="xs" icon={UploadCloud}>
+              Upload Facility Telemetry
+            </Button>
+          </Link>
         </div>
       </SectionCard>
     );

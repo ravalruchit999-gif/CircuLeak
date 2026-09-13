@@ -47,7 +47,7 @@ export function Trajectory() {
           title="Trajectory Modeling Requires Baseline Telemetry"
           description="5-year decarbonization modeling and dynamic roadmap sequencing require operational energy telemetry to model business-as-usual vs intervention curves."
           actionText="Upload Telemetry Dataset"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );

@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { inspectIndustrialDataset, processIndustrialDataset } from '../../services/uploadApi';
+import { inspectIndustrialDataset, processIndustrialDataset, getLatestUpload } from '../../services/uploadApi';
 import { useFacilityContext } from '../../context/FacilityContext';
 import { Link } from 'react-router-dom';
 
@@ -49,6 +49,43 @@ export function IngestionWizard() {
 
   const fileInputRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Restore active ingested dataset across page refreshes
+  React.useEffect(() => {
+    let isMounted = true;
+    if (!currentFacilityId) return;
+
+    const cacheKey = `circuleak_active_upload_${currentFacilityId}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed && (parsed.file_name || parsed.filename)) {
+          setUploadResult(parsed);
+          setStep(4);
+        }
+      } catch (e) {
+        console.error('Failed to parse cached upload info', e);
+      }
+    }
+
+    getLatestUpload(currentFacilityId)
+      .then((res) => {
+        if (!isMounted) return;
+        if (res?.data && (res.data.file_name || res.data.filename)) {
+          setUploadResult(res.data);
+          setStep(4);
+          localStorage.setItem(cacheKey, JSON.stringify(res.data));
+        }
+      })
+      .catch(() => {
+        // Silently preserve cached dataset
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentFacilityId]);
 
   // STEP 1: Handle file drop / browse and inspect headers
   const handleFile = async (file) => {
@@ -130,7 +167,11 @@ export function IngestionWizard() {
 
     try {
       const result = await processIndustrialDataset(selectedFile, currentFacilityId, customMapping);
-      setUploadResult(result.data);
+      const resData = result.data;
+      setUploadResult(resData);
+      if (currentFacilityId) {
+        localStorage.setItem(`circuleak_active_upload_${currentFacilityId}`, JSON.stringify(resData));
+      }
       setStep(4);
       // Refresh facility baseline metrics
       refreshFacilityData();
@@ -146,10 +187,21 @@ export function IngestionWizard() {
     setSelectedFile(null);
     setInspectData(null);
     setCustomMapping({});
-    setUploadResult(null);
     setErrorMessage(null);
     setStep(1);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
+
+  const handleRemoveFile = () => {
+    if (currentFacilityId) {
+      localStorage.removeItem(`circuleak_active_upload_${currentFacilityId}`);
+    }
+    setUploadResult(null);
+    resetWizard();
+  };
+
 
   return (
     <div className="space-y-6">
@@ -410,17 +462,28 @@ export function IngestionWizard() {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-emerald-200">
-                    Telemetry Ingested & Verified Successfully
-                  </h3>
-                  <p className="text-xs text-emerald-400/80 font-mono">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-emerald-200">
+                      Telemetry Ingested & Verified Successfully
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-semibold">
+                      Active Ingested Dataset
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-400/80 font-mono mt-0.5">
                     Run ID: {uploadResult.analysis_run_id || 'RUN-AUTO'} • File: {uploadResult.file_name}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={resetWizard}>
-                  Upload Another File
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRemoveFile}
+                  className="border-red-900/60 text-red-300 hover:bg-red-950/60 hover:border-red-700 flex items-center gap-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Remove Ingested File</span>
                 </Button>
                 <Link to="/leaks">
                   <Button variant="primary" size="sm" icon={Activity}>
@@ -451,17 +514,17 @@ export function IngestionWizard() {
               <div className="bg-[#0f1219]/90 border border-[#1f2635] rounded p-3 text-center">
                 <span className="text-[10px] font-mono text-slate-400 block uppercase">Confidence Score</span>
                 <span className="text-xl font-bold font-mono text-emerald-400">
-                  {uploadResult.quality_score ? `${Math.round(uploadResult.quality_score)}%` : '92%'}
+                  {uploadResult.quality_score != null ? `${Math.round(uploadResult.quality_score)}%` : '—'}
                 </span>
                 <span className="text-[10px] text-emerald-400 font-mono block">
-                  {uploadResult.quality_level ? uploadResult.quality_level.toUpperCase() : 'HIGH QUALITY'}
+                  {uploadResult.quality_level ? uploadResult.quality_level.toUpperCase() : 'PENDING'}
                 </span>
               </div>
 
               <div className="bg-[#0f1219]/90 border border-[#1f2635] rounded p-3 text-center">
                 <span className="text-[10px] font-mono text-slate-400 block uppercase">Anomalies Detected</span>
                 <span className="text-xl font-bold font-mono text-amber-400">
-                  {uploadResult.anomalies_detected ?? 'Active'}
+                  {uploadResult.anomalies_detected != null ? uploadResult.anomalies_detected : 0}
                 </span>
                 <span className="text-[10px] text-amber-400/80 font-mono block">Sync Complete</span>
               </div>
@@ -484,17 +547,19 @@ export function IngestionWizard() {
                   { key: 'fuel_consumption', label: 'Fuel Batch' },
                   { key: 'historical_baseline', label: 'Baseline Sync' },
                 ].map((dim) => {
-                  const score = Math.round(uploadResult.dimensions[dim.key] || 90);
+                  const rawScore = uploadResult.dimensions ? uploadResult.dimensions[dim.key] : null;
+                  const hasScore = rawScore != null;
+                  const score = hasScore ? Math.round(rawScore) : 0;
                   return (
                     <div key={dim.key} className="bg-[#0f1219] border border-[#1e2533] rounded p-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-[11px] font-semibold text-slate-300">{dim.label}</span>
-                        <span className="text-[11px] font-mono font-bold text-emerald-400">{score}%</span>
+                        <span className="text-[11px] font-mono font-bold text-emerald-400">{hasScore ? `${score}%` : '—'}</span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-emerald-500 rounded-full"
-                          style={{ width: `${score}%` }}
+                          style={{ width: `${hasScore ? score : 0}%` }}
                         />
                       </div>
                     </div>

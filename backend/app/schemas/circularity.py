@@ -24,3 +24,4 @@ class CircularityScoreResponse(BaseModel):
     pillars: Optional[List[Dict[str, Any]]] = []
     key_insights: Optional[List[str]] = []
     missing_inputs: Optional[List[str]] = []
+    symbiosis_summary: Optional[Dict[str, Any]] = None

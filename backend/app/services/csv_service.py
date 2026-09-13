@@ -16,6 +16,7 @@ from app.models.emission_factor import EmissionFactor
 from app.services.data_quality_service import DataQualityService
 from app.services.leak_service import LeakService
 from app.services.emission_service import EmissionService
+from app.services.dataset_hash_service import compute_canonical_dataset_hash, get_code_version
 from app.schemas.telemetry_contract import TelemetryContract, TelemetryContractValidationError, CANONICAL_ALIASES
 
 
@@ -133,6 +134,9 @@ class CSVService:
         db.add(upload_entry)
         db.flush()
 
+        dataset_hash = compute_canonical_dataset_hash(valid_df)
+        code_ver = get_code_version()
+
         ingest_run = AnalysisRun(
             id=analysis_run_id,
             facility_id=facility_id,
@@ -140,7 +144,13 @@ class CSVService:
             analysis_type="telemetry_ingestion",
             model_name="CanonicalIngestionPipeline",
             model_version="1.0.0",
-            parameters={"custom_mapping": custom_mapping or {}},
+            parameters={
+                "custom_mapping": custom_mapping or {},
+                "dataset_hash_sha256": dataset_hash,
+                "code_version": code_ver
+            },
+            dataset_hash_sha256=dataset_hash,
+            code_version=code_ver,
             feature_set=list(valid_df.columns),
             input_row_count=raw_rows_count,
             started_at=start_time,
@@ -149,28 +159,40 @@ class CSVService:
         db.add(ingest_run)
         db.flush()
 
-        # 4. Database-Driven Emission Calculation with Full Provenance
-        factors_lookup = EmissionService.get_active_factors_lookup(db)
-        grid_factor_obj = factors_lookup.get("grid_electricity")
-        grid_factor_val = grid_factor_obj.factor_value if grid_factor_obj else 0.716
+        # 4. Database-Driven Emission Calculation with Full Provenance & Validity Windowing
+        ef_cache = {}
 
         def compute_row_emissions_and_provenance(row):
             elec_kwh = float(row.get("electricity_kwh", 0.0) or 0.0)
             fuel_qty = float(row.get("fuel_quantity", 0.0) or 0.0)
             fuel_type_str = str(row.get("fuel_type", "none") or "none").strip().lower()
 
-            total_emiss = elec_kwh * grid_factor_val
-            ef_id = grid_factor_obj.id if grid_factor_obj else None
-            ef_version = grid_factor_obj.version if grid_factor_obj else "v19-2024"
-            ef_ref = grid_factor_obj.reference if grid_factor_obj else "India CEA CO2 Baseline Database v19 (2024)"
-            ef_from = grid_factor_obj.effective_from if grid_factor_obj else None
-            ef_to = grid_factor_obj.effective_to if grid_factor_obj else None
+            row_ts = row["normalized_timestamp"]
+            if hasattr(row_ts, "to_pydatetime"):
+                row_ts = row_ts.to_pydatetime()
+            elif isinstance(row_ts, str):
+                row_ts = datetime.fromisoformat(row_ts)
+
+            date_key = row_ts.date() if hasattr(row_ts, "date") else None
+            grid_key = ("grid_electricity", date_key)
+            if grid_key not in ef_cache:
+                ef_cache[grid_key] = EmissionService.get_factor_for_telemetry(db, "grid_electricity", row_ts)
+            grid_ef = ef_cache[grid_key]
+            total_emiss = elec_kwh * grid_ef.factor_value
+
+            ef_id = grid_ef.id
+            ef_version = grid_ef.version or "2024.1"
+            ef_ref = grid_ef.reference
+            ef_from = grid_ef.effective_from
+            ef_to = grid_ef.effective_to
 
             if fuel_type_str != "none" and fuel_qty > 0:
                 fuel_clean = fuel_type_str.replace(" ", "_").replace("-", "_")
-                fuel_ef = factors_lookup.get(fuel_clean)
-                if fuel_ef:
-                    total_emiss += fuel_qty * fuel_ef.factor_value
+                fuel_key = (fuel_clean, date_key)
+                if fuel_key not in ef_cache:
+                    ef_cache[fuel_key] = EmissionService.get_factor_for_telemetry(db, fuel_clean, row_ts)
+                fuel_ef = ef_cache[fuel_key]
+                total_emiss += fuel_qty * fuel_ef.factor_value
 
             return pd.Series([round(total_emiss, 4), ef_id, ef_version, ef_ref, ef_from, ef_to])
 
@@ -290,7 +312,8 @@ class CSVService:
                 "anomaly_run_id": anomaly_run_id,
                 "rows_ingested": valid_count,
                 "anomalies_detected": anomalies_detected,
-                "confidence_score": quality_eval["confidence_score"]
+                "confidence_score": quality_eval["confidence_score"],
+                "dataset_hash_sha256": dataset_hash
             }
         )
         db.add(audit_entry)

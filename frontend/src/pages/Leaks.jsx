@@ -44,7 +44,7 @@ export function Leaks() {
           title="No Anomalies or Leaks Detected"
           description="Monitored equipment is currently operating within expected baseline consumption boundaries, or no operational logs have been ingested yet."
           actionText="Upload Telemetry Dataset"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );

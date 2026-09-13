@@ -16,10 +16,15 @@ export async function generateReport(facilityId, format = 'pdf') {
       ? (raw.download_url.startsWith('http') ? raw.download_url : `${backendOrigin}${raw.download_url}`)
       : '#download';
 
+    const previewUrl = raw.preview_url
+      ? (raw.preview_url.startsWith('http') ? raw.preview_url : `${backendOrigin}${raw.preview_url}`)
+      : (downloadUrl.includes('?') ? `${downloadUrl}&inline=true` : `${downloadUrl}?inline=true`);
+
     res.data = {
       ...raw,
       success: true,
-      report_url: downloadUrl,
+      report_url: previewUrl,
+      preview_url: previewUrl,
       download_url: downloadUrl,
       format: 'pdf',
       generated_at: raw.generated_at || new Date().toISOString(),

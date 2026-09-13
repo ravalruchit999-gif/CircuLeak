@@ -47,7 +47,7 @@ export function Emissions() {
           title="No Operational Emissions Recorded"
           description="Emission intelligence requires uploaded operational time-series telemetry. Upload energy and fuel consumption logs to compute verified Scope 1 and Scope 2 footprints."
           actionText="Upload Facility Telemetry"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );

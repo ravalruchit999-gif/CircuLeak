@@ -159,16 +159,6 @@ def get_platform_audit_logs(admin_user: User = Depends(require_admin_user), db: 
 def get_master_emission_factors(admin_user: User = Depends(require_admin_user), db: Session = Depends(get_db)):
     """Retrieve master regulatory GHG emission factors (admin only)."""
     factors = db.query(EmissionFactor).all()
-    if not factors:
-        defaults = [
-            {"id": 1, "source_type": "grid_electricity", "factor_value": 0.82, "unit": "kgCO2e/kWh", "region": "India National Grid (CEA 2024)", "source_reference": "Central Electricity Authority"},
-            {"id": 2, "source_type": "natural_gas", "factor_value": 2.02, "unit": "kgCO2e/SCM", "region": "Industrial PNG", "source_reference": "IPCC Tier 2 Guidelines"},
-            {"id": 3, "source_type": "diesel", "factor_value": 2.68, "unit": "kgCO2e/L", "region": "HSD Generator Fuel", "source_reference": "MoEFCC India Baseline"},
-            {"id": 4, "source_type": "coal", "factor_value": 2.42, "unit": "kgCO2e/kg", "region": "Indian Non-Coking Coal", "source_reference": "BEE Energy Audit Manual"},
-            {"id": 5, "source_type": "lpg", "factor_value": 2.98, "unit": "kgCO2e/kg", "region": "Commercial LPG", "source_reference": "GHG Protocol Stationary"}
-        ]
-        return APIResponse(success=True, data=defaults)
-
     return APIResponse(
         success=True,
         data=[
@@ -178,7 +168,10 @@ def get_master_emission_factors(admin_user: User = Depends(require_admin_user), 
                 "factor_value": ef.factor_value,
                 "unit": ef.unit,
                 "region": "India National Standard",
-                "source_reference": ef.reference
+                "source_reference": ef.reference,
+                "version": getattr(ef, "version", "2024.1"),
+                "scope": getattr(ef, "scope", "Scope 2"),
+                "is_active": ef.is_active
             }
             for ef in factors
         ]
@@ -237,24 +230,106 @@ def create_emission_factor(
     )
 
 
+def _sync_default_benchmarks(db: Session):
+    """Seed or update master sector benchmarks from standard reference dataset."""
+    from app.data.benchmark_data import SECTOR_BENCHMARKS
+    for key, data in SECTOR_BENCHMARKS.items():
+        sector_name = data["sector_name"]
+        existing = db.query(Benchmark).filter(Benchmark.sector == sector_name).first()
+        if not existing:
+            new_bm = Benchmark(
+                sector=sector_name,
+                average_emission_intensity=data["average_intensity"],
+                median_emission_intensity=data["median_intensity"],
+                best_in_class_intensity=data["best_in_class"],
+                ccts_threshold=data["ccts_threshold"],
+                unit=data["unit"],
+                sample_size=100
+            )
+            db.add(new_bm)
+    db.commit()
+
+
 @router.get("/benchmarks", response_model=APIResponse[List[Dict[str, Any]]])
 def get_admin_benchmarks(admin_user: User = Depends(require_admin_user), db: Session = Depends(get_db)):
     """Retrieve regulatory industry sector benchmarks (admin only)."""
     benchmarks = db.query(Benchmark).all()
+    if not benchmarks:
+        _sync_default_benchmarks(db)
+        benchmarks = db.query(Benchmark).all()
+
     results = [
         {
             "id": b.id,
             "sector": b.sector,
             "average_emission_intensity": b.average_emission_intensity,
+            "average_intensity": b.average_emission_intensity,
             "median_emission_intensity": b.median_emission_intensity,
             "best_in_class_intensity": b.best_in_class_intensity,
+            "top_10_percent_intensity": b.best_in_class_intensity,
             "ccts_threshold": b.ccts_threshold,
             "unit": b.unit,
-            "sample_size": b.sample_size
+            "sample_size": b.sample_size,
+            "facility_count": b.sample_size
         }
         for b in benchmarks
     ]
     return APIResponse(success=True, data=results)
+
+
+@router.post("/benchmarks/calculate", response_model=APIResponse[Dict[str, Any]])
+def recalculate_admin_benchmarks(
+    admin_user: User = Depends(require_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Recalculate dynamic sector benchmarks across active facilities and regulatory reference standards (admin only).
+    """
+    _sync_default_benchmarks(db)
+
+    from app.services.emission_service import EmissionService
+    facilities = db.query(Facility).all()
+    sector_empirics: Dict[str, List[float]] = {}
+    for f in facilities:
+        row_count = db.query(func.count(ProcessData.id)).filter(ProcessData.facility_id == f.id).scalar() or 0
+        if row_count > 0:
+            summary = EmissionService.calculate_summary(db, f.id)
+            intensity = summary.get("emissions_intensity", 0.0)
+            if intensity > 0:
+                sector_empirics.setdefault(f.sector.strip(), []).append(intensity)
+
+    updated_count = 0
+    benchmarks = db.query(Benchmark).all()
+    for b in benchmarks:
+        if b.sector in sector_empirics:
+            samples = sector_empirics[b.sector]
+            empirical_avg = sum(samples) / len(samples)
+            b.average_emission_intensity = round((b.average_emission_intensity * 0.7) + (empirical_avg * 0.3), 3)
+            b.sample_size = 100 + len(samples)
+            updated_count += 1
+
+    db.commit()
+
+    # Record audit log
+    audit = AuditLog(
+        user_id=admin_user.id,
+        user_email=admin_user.email,
+        action="benchmarks_recalculated",
+        resource="benchmarks",
+        resource_id="all",
+        details={"recalculated_sectors": len(benchmarks), "empirical_updates": updated_count}
+    )
+    db.add(audit)
+    db.commit()
+
+    return APIResponse(
+        success=True,
+        data={
+            "message": f"Successfully recalculated sector benchmarks for {len(benchmarks)} industrial sectors.",
+            "total_sectors": len(benchmarks),
+            "empirical_updates": updated_count
+        }
+    )
 
 
 @router.post("/benchmarks", response_model=APIResponse[Dict[str, Any]])

@@ -18,11 +18,25 @@ export const CHART_COLORS = {
 };
 
 export const customTooltipStyle = {
-  backgroundColor: '#11141b',
-  borderColor: '#28303f',
-  borderRadius: '6px',
-  color: '#f1f5f9',
+  backgroundColor: '#0f131a',
+  borderColor: '#242e40',
+  borderRadius: '8px',
+  color: '#f8fafc',
   fontSize: '12px',
-  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-  padding: '8px 12px',
+  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.6)',
+  padding: '10px 14px',
 };
+
+export const customItemStyle = {
+  color: '#38bdf8',
+  fontWeight: 600,
+  fontSize: '12px',
+};
+
+export const customLabelStyle = {
+  color: '#f8fafc',
+  fontWeight: 600,
+  fontSize: '12px',
+  marginBottom: '4px',
+};
+

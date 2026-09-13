@@ -1,8 +1,72 @@
 /**
- * Application route definitions and navigation metadata
+ * Application route definitions and consolidated Power Hubs navigation metadata
  */
 
+export const PRIMARY_HUBS = [
+  {
+    id: 'observability',
+    label: 'Plant Observability',
+    path: '/dashboard',
+    iconName: 'LayoutDashboard',
+    tag: 'Vitals & Energy',
+    description: 'Executive KPIs, emissions, peer benchmark & circularity',
+    subItems: [
+      { label: 'Overview', path: '/dashboard' },
+      { label: 'Emissions', path: '/emissions' },
+      { label: 'Benchmark', path: '/benchmark' },
+      { label: 'Circularity', path: '/circularity' },
+      { label: 'Data Ingestion', path: '/data-upload' },
+      { label: 'Facility Setup', path: '/facility' },
+    ],
+  },
+  {
+    id: 'leaks',
+    label: 'Leak Forensics & Solutions',
+    path: '/leaks',
+    iconName: 'AlertTriangle',
+    tag: 'Anomalies & Why?',
+    description: 'Carbon anomalies, root cause diagnosis & certified interventions',
+    badge: 'Flagged',
+    subItems: [
+      { label: 'Incident Registry', path: '/leaks' },
+      { label: 'BEE Interventions', path: '/recommendations' },
+    ],
+  },
+  {
+    id: 'strategy',
+    label: 'Decarbonization Sandbox',
+    path: '/simulation',
+    iconName: 'Sliders',
+    tag: 'Simulation & Plan',
+    description: 'Interactive What-If simulation, Gantt deployment & 2030 SBTi curve',
+    subItems: [
+      { label: 'What-If Sim', path: '/simulation' },
+      { label: 'Action Planner', path: '/action-planner' },
+      { label: '5-Year Trajectory', path: '/trajectory' },
+    ],
+  },
+  {
+    id: 'compliance',
+    label: 'Compliance Vault',
+    path: '/audit-report',
+    iconName: 'FileText',
+    tag: 'ISO 14064 / BRSR',
+    description: 'Auditor-grade ESG disclosure packs & SHA-256 cryptographic provenance',
+    subItems: [
+      { label: 'Audit Pack Export', path: '/audit-report' },
+    ],
+  },
+];
+
 export const NAV_ITEMS = [
+  {
+    id: 'strategy-hub',
+    label: 'Decarbonization Sandbox',
+    path: '/strategy',
+    iconName: 'Sliders',
+    description: 'Unified simulation, Gantt roadmap, and SBTi trajectory studio',
+    group: 'projection',
+  },
   {
     id: 'dashboard',
     label: 'Executive Dashboard',

@@ -12,5 +12,6 @@ class ReportGenerateResponse(BaseModel):
     report_title: str
     file_name: str
     download_url: str
+    preview_url: Optional[str] = None
     file_size_bytes: int
     sections_included: List[str]

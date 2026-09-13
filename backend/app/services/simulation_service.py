@@ -4,12 +4,14 @@ try:
     from app.models.simulation import Simulation
     from app.services.emission_service import EmissionService
     from app.services.recommendation_service import RecommendationService
+    from app.services.ccts_service import CCTSService
     from app.data.recommendations import DEFAULT_RECOMMENDATIONS
     from app.utils.calculations import calculate_payback
 except (ImportError, ModuleNotFoundError):
     from ..models.simulation import Simulation
     from .emission_service import EmissionService
     from .recommendation_service import RecommendationService
+    from .ccts_service import CCTSService
     from ..data.recommendations import DEFAULT_RECOMMENDATIONS
     from ..utils.calculations import calculate_payback
 
@@ -86,6 +88,23 @@ class SimulationService:
         db.add(sim)
         db.commit()
 
+        # CCTS Carbon Credit Monetization Impact
+        ccts_status = CCTSService.get_facility_ccts_status(db, facility_id)
+        prod_volume = ccts_status.get("production_volume_tonnes", 1000.0)
+        actual_intensity = ccts_status.get("actual_intensity_tco2_per_tonne", 1.0)
+        target_intensity = ccts_status.get("target_intensity_tco2_per_tonne", 0.82)
+        abatement_tonnes = round(effective_reduction / 1000.0, 2)
+
+        ccts_impact = CCTSService.calculate_monetization_impact(
+            abatement_tonnes=abatement_tonnes,
+            investment_inr=total_investment,
+            annual_savings_inr=total_annual_savings,
+            actual_intensity=actual_intensity,
+            target_intensity=target_intensity,
+            prod_volume=prod_volume,
+            carbon_price_inr=1850.0
+        )
+
         return {
             "facility_id": facility_id,
             "has_data": True,
@@ -96,6 +115,10 @@ class SimulationService:
             "investment": round(total_investment, 2),
             "annual_savings": round(total_annual_savings, 2),
             "payback_years": payback_years,
+            "accelerated_payback_years": ccts_impact["accelerated_payback_years"],
+            "tradable_ccc_earned": ccts_impact["tradable_ccc_earned"],
+            "carbon_revenue_inr": ccts_impact["annual_carbon_revenue_inr"],
+            "ccts_monetization": ccts_impact,
             "five_year_savings": five_year_savings,
             "selected_interventions": valid_interventions
         }
@@ -124,24 +147,46 @@ class SimulationService:
             "air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation", "whr_boiler_flue"
         ]
 
+        # Dynamically build scenario intervention bundles from available_ids
+        cost_saver_ids = [i for i in ["air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation"] if i in available_ids]
+        if not cost_saver_ids and available_ids:
+            recs_by_payback = sorted(
+                [r for r in facility_recs if r.get("id") in available_ids],
+                key=lambda x: (x.get("payback_period_years") or 99.0, x.get("estimated_cost_inr") or 9999999)
+            )
+            cost_saver_ids = [recs_by_payback[0]["id"]] if recs_by_payback else [available_ids[0]]
+
+        balanced_ids = [i for i in ["whr_boiler_flue", "vfd_compressor_retrofit", "condensate_steam_recovery", "air_leak_audit_repair"] if i in available_ids]
+        if not balanced_ids and available_ids:
+            balanced_ids = available_ids[:min(3, len(available_ids))]
+
+        max_decarb_ids = [i for i in ["rooftop_solar_pv", "fuel_switch_biomass_briquettes", "whr_boiler_flue", "vfd_compressor_retrofit"] if i in available_ids]
+        if not max_decarb_ids and available_ids:
+            recs_by_reduction = sorted(
+                [r for r in facility_recs if r.get("id") in available_ids],
+                key=lambda x: x.get("estimated_co2_reduction_annual_kg") or 0.0,
+                reverse=True
+            )
+            max_decarb_ids = [r["id"] for r in recs_by_reduction[:min(2, len(recs_by_reduction))]] if recs_by_reduction else [available_ids[0]]
+
         scenarios_definitions = [
             {
                 "id": "scen_cost_saver",
                 "name": "Cost Saver",
                 "focus": "Low initial capex, rapid payback (< 1.5 yrs) through leak fixes and controls",
-                "ids": [i for i in ["air_leak_audit_repair", "auto_idle_shutdown", "furnace_ceramic_insulation"] if i in available_ids or len(available_ids) < 3]
+                "ids": cost_saver_ids
             },
             {
                 "id": "scen_balanced",
                 "name": "Balanced",
                 "focus": "Optimal balance of strong CO2 reduction, solid financial ROI, and proven feasibility",
-                "ids": [i for i in ["whr_boiler_flue", "vfd_compressor_retrofit", "condensate_steam_recovery", "air_leak_audit_repair"] if i in available_ids or len(available_ids) < 3]
+                "ids": balanced_ids
             },
             {
                 "id": "scen_max_decarb",
                 "name": "Maximum Decarbonization",
-                "focus": "Aggressive decarbonization using rooftop solar PV, fuel switching, and heat recovery",
-                "ids": [i for i in ["rooftop_solar_pv", "fuel_switch_biomass_briquettes", "whr_boiler_flue", "vfd_compressor_retrofit"] if i in available_ids or len(available_ids) < 3]
+                "focus": "Aggressive decarbonization using renewable generation, fuel switching, and heat recovery",
+                "ids": max_decarb_ids
             }
         ]
 

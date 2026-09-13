@@ -81,9 +81,11 @@ export function useSimulation() {
     setSimulating(true);
     try {
       const res = await simulateWhatIf(updated, currentFacilityId);
-      setSimulationResult(res.data);
+      if (res?.data) {
+        setSimulationResult(res.data);
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Simulation calculation error:', err);
     } finally {
       setSimulating(false);
     }
@@ -97,15 +99,18 @@ export function useSimulation() {
     setSimulating(true);
     try {
       const res = await simulateWhatIf(ids, currentFacilityId);
-      setSimulationResult(res.data);
+      if (res?.data) {
+        setSimulationResult(res.data);
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Apply scenario calculation error:', err);
     } finally {
       setSimulating(false);
     }
   };
 
   return {
+    facilityId: currentFacilityId,
     scenarios,
     availableInterventions,
     selectedInterventions,

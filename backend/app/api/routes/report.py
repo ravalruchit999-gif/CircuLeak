@@ -32,9 +32,9 @@ def generate_audit_report(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"PDF report generation failed: {str(e)}")
 
 
-@router.get("/download/{filename}")
-def download_pdf_report(filename: str):
-    """Download the generated PDF audit report."""
+@router.get("/preview/{filename}")
+def preview_pdf_report(filename: str):
+    """View the generated PDF audit report inline in browser/iframe without downloading."""
     clean_name = sanitize_filename(filename)
     file_path = os.path.join(settings.UPLOAD_DIR, clean_name)
 
@@ -44,5 +44,24 @@ def download_pdf_report(filename: str):
     return FileResponse(
         path=file_path,
         media_type="application/pdf",
+        content_disposition_type="inline",
+        filename=clean_name
+    )
+
+
+@router.get("/download/{filename}")
+def download_pdf_report(filename: str, inline: bool = False):
+    """Download the generated PDF audit report (or view inline if inline=True)."""
+    clean_name = sanitize_filename(filename)
+    file_path = os.path.join(settings.UPLOAD_DIR, clean_name)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report file not found.")
+
+    disp_type = "inline" if inline else "attachment"
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        content_disposition_type=disp_type,
         filename=clean_name
     )

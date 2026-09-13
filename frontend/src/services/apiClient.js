@@ -46,7 +46,15 @@ export async function apiRequest(endpoint, options = {}) {
       let parsedMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const json = JSON.parse(errorBody);
-        parsedMessage = json.detail || json.message || json.error?.message || parsedMessage;
+        if (Array.isArray(json.detail)) {
+          parsedMessage = json.detail
+            .map((d) => (d.loc ? `${d.loc[d.loc.length - 1]}: ${d.msg}` : d.msg))
+            .join('; ');
+        } else if (typeof json.detail === 'string') {
+          parsedMessage = json.detail;
+        } else {
+          parsedMessage = json.message || json.error?.message || parsedMessage;
+        }
       } catch {
         // use default
       }

@@ -9,7 +9,6 @@ import { InterventionSelector } from '../components/simulation/InterventionSelec
 import { SimulationResults } from '../components/simulation/SimulationResults';
 import { FinancialImpact } from '../components/simulation/FinancialImpact';
 import { ScenarioCard } from '../components/simulation/ScenarioCard';
-import { ScenarioComparison } from '../components/simulation/ScenarioComparison';
 import { Button } from '../components/ui/Button';
 import { TrendingDown, FileText, Upload, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -58,7 +57,7 @@ export function Simulation() {
           title="No Simulation Baseline Available"
           description="What-if modeling and scenario simulations require facility operational telemetry to establish baseline energy and emission curves."
           actionText="Upload Facility Telemetry"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );
@@ -117,7 +116,7 @@ export function Simulation() {
         simulating={simulating}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <InterventionSelector
           interventions={availableInterventions}
           selectedIds={selectedInterventions}
@@ -129,15 +128,6 @@ export function Simulation() {
           <FinancialImpact result={simulationResult} />
         </div>
       </div>
-
-      {/* Side-by-Side Scenario Comparison Matrix */}
-      {scenarios.length > 0 && (
-        <ScenarioComparison
-          scenarios={scenarios}
-          activeId={activeScenarioId}
-          onSelect={applyScenario}
-        />
-      )}
     </div>
   );
 }

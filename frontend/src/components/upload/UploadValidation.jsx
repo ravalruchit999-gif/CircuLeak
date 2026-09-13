@@ -16,19 +16,19 @@ export function UploadValidation({ result }) {
         <div>
           <span className="text-[10px] text-slate-400 uppercase block">Rows Evaluated</span>
           <span className="text-base font-bold text-white">
-            {result.rows_processed?.toLocaleString() || 8760}
+            {result.rows_processed != null ? result.rows_processed.toLocaleString() : '—'}
           </span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 uppercase block">Accepted Clean</span>
           <span className="text-base font-bold text-emerald-400">
-            {result.rows_accepted?.toLocaleString() || 8742}
+            {result.rows_accepted != null ? result.rows_accepted.toLocaleString() : '—'}
           </span>
         </div>
         <div>
           <span className="text-[10px] text-slate-400 uppercase block">Rejected Anomalies</span>
           <span className="text-base font-bold text-amber-400">
-            {result.rows_rejected || 18}
+            {result.rows_rejected != null ? result.rows_rejected.toLocaleString() : '—'}
           </span>
         </div>
         <div>

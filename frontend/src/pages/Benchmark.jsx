@@ -47,7 +47,7 @@ export function Benchmark() {
           title="Benchmarking Comparison Awaiting Operational Metrics"
           description="Specific emission intensity (kgCO₂e per unit output) and peer cohort comparisons require ingested electricity, fuel, and production tonnage records."
           actionText="Upload Telemetry Dataset"
-          actionLink="/upload"
+          actionLink="/data-upload"
         />
       </div>
     );

@@ -26,6 +26,7 @@ class Leak(Base):
     production_status = Column(String(50), default="active")  # "active", "inactive", "idle"
     reason = Column(Text, nullable=False)
     potential_causes = Column(JSON, default=list)  # list of strings
+    status = Column(String(50), default="detected", nullable=False)  # "detected", "investigating", "resolved", "dismissed"
     detected_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
 
     # Relationships

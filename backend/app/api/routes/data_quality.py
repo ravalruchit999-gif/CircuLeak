@@ -18,19 +18,22 @@ router = APIRouter(prefix="/data-quality", tags=["Data Quality Governance"])
 
 @router.get("/overview", response_model=APIResponse[Dict[str, Any]])
 def get_data_quality_overview(
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Retrieve platform-wide or facility-scoped data quality statistics.
     Admin sees all facilities; non-admin sees their own facility cohort.
     """
-    facilities = db.query(Facility).all() if (current_user and current_user.role == "admin") else (
-        db.query(Facility).filter(Facility.id == current_user.facility_id).all() if (current_user and current_user.facility_id) else []
-    )
-
-    if not facilities:
-        facilities = db.query(Facility).limit(10).all()
+    if current_user.role == "admin":
+        facilities = db.query(Facility).all()
+    elif current_user.facility_id:
+        facilities = db.query(Facility).filter(Facility.id == current_user.facility_id).all()
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"message": "No facility assigned to authenticated user."}
+        )
 
     facilities_quality = []
     total_scores = []
@@ -107,7 +110,7 @@ def get_data_quality_overview(
 @router.get("/facility/{facility_id}", response_model=APIResponse[Dict[str, Any]])
 def get_facility_data_quality(
     facility_id: int,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """

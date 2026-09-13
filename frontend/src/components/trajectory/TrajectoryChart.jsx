@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'recharts';
 import { SectionCard } from '../ui/SectionCard';
-import { customTooltipStyle } from '../../utils/chartHelpers';
+import { customTooltipStyle, customItemStyle, customLabelStyle } from '../../utils/chartHelpers';
 
 export function TrajectoryChart({ projection = [] }) {
   const chartData = Array.isArray(projection) ? projection : [];
@@ -70,6 +70,8 @@ export function TrajectoryChart({ projection = [] }) {
             />
             <Tooltip
               contentStyle={customTooltipStyle}
+              itemStyle={customItemStyle}
+              labelStyle={customLabelStyle}
               formatter={(val, name) => [`${Number(val).toLocaleString()} kgCO₂e/day`, name]}
             />
             <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />

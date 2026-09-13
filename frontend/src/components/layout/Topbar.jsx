@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Building, AlertCircle, CheckCircle2, Activity, ShieldAlert } from 'lucide-react';
+import { Menu, Building, AlertCircle, CheckCircle2, Activity, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { useFacilityContext } from '../../context/FacilityContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export function Topbar({ onToggleSidebar }) {
   const { currentFacilityId, facilityName, facilityDetails, facilityMetrics, liveApiError } =
     useFacilityContext();
   const { isAdmin } = useAuth();
+  const { theme, toggleTheme, isDark } = useTheme();
 
   const totalEmissions = facilityMetrics?.total_emissions;
   const intensity = facilityMetrics?.emissions_intensity;
@@ -82,23 +84,35 @@ export function Topbar({ onToggleSidebar }) {
           </div>
         )}
 
-        {/* Admin Console Shortcut */}
-        {isAdmin ? (
+        {/* Light / Dark Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          type="button"
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium border bg-[#171e2c] border-[#29354b] text-slate-200 hover:text-white hover:border-emerald-500/50 hover:bg-[#1f283a] transition-all cursor-pointer shadow-sm active:scale-95"
+        >
+          {isDark ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+              <span className="hidden sm:inline text-[11px]">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline text-[11px]">Dark</span>
+            </>
+          )}
+        </button>
+
+        {/* Admin Console Shortcut (Only visible to verified Administrators) */}
+        {isAdmin && (
           <Link
             to="/admin"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium border bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/80 transition-colors shadow-sm"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
-            <span>Admin Console</span>
-          </Link>
-        ) : (
-          <Link
-            to="/admin"
-            title="Access System Governance (Requires Admin Authentication)"
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium border bg-slate-900 text-slate-400 border-slate-800 hover:text-purple-300 hover:border-purple-800/60 transition-colors"
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
-            <span className="hidden sm:inline">Admin</span>
+            <span>&larr; Admin Console</span>
           </Link>
         )}
       </div>

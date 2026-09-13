@@ -17,6 +17,11 @@ logger = logging.getLogger("circuleak")
 try:
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables initialized successfully.")
+    try:
+        from migrate_schema import migrate_database
+        migrate_database()
+    except Exception as me:
+        logger.info(f"Schema migration note: {me}")
 except Exception as e:
     logger.warning(f"Could not connect to database on startup: {e}")
 

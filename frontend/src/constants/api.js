@@ -6,7 +6,7 @@
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   USE_MOCK: false,
-  TIMEOUT_MS: 15000,
+  TIMEOUT_MS: 60000,
 };
 
 export const toApiFacilityId = (id) => {
@@ -24,6 +24,9 @@ export const ENDPOINTS = {
   UPLOAD_INSPECT: '/upload/inspect',
   UPLOAD_CSV: '/upload/csv',
   UPLOAD_PROCESS: '/upload/process',
+  UPLOAD_TEMPLATES: '/upload/templates',
+  UPLOAD_TEMPLATE: (sector, format = 'xlsx') =>
+    `/upload/template?format=${format}${sector ? `&sector=${encodeURIComponent(sector)}` : ''}`,
 
   // Emissions Analytical Suite
   EMISSIONS_SUMMARY: (id) => `/emissions/summary/${toApiFacilityId(id)}`,
@@ -32,12 +35,20 @@ export const ENDPOINTS = {
     interval ? `/emissions/timeline/${toApiFacilityId(id)}?interval=${encodeURIComponent(interval)}` : `/emissions/timeline/${toApiFacilityId(id)}`,
   EMISSIONS_SANKEY: (id) => `/emissions/sankey/${toApiFacilityId(id)}`,
 
-  // Leak & Anomaly Engine
+  // Leak & Incident Engine
   LEAKS_HOTSPOTS: (id) => `/leaks/hotspots/${toApiFacilityId(id)}`,
   LEAKS_ANOMALIES: (id) => `/leaks/anomalies/${toApiFacilityId(id)}`,
   LEAK_BY_ID: (id) => `/leaks/${id}`,
+  INCIDENT_BY_ID: (id) => `/incidents/${id}`,
+  INCIDENT_STATUS_UPDATE: (id) => `/incidents/${id}/status`,
+  INCIDENT_WHY: (id) => `/incidents/${id}/why`,
+  INCIDENT_RECOMMENDATIONS: (id) => `/incidents/${id}/recommendations`,
+  INCIDENT_RECOMMENDATIONS_COMPARE: (id) => `/incidents/${id}/recommendations/compare`,
 
-  // Interventions & Recommendations
+  // Interventions & Recommendations Knowledge Base
+  INTERVENTIONS_CATALOG: '/interventions',
+  INTERVENTION_BY_ID: (id) => `/interventions/${id}`,
+  INTERVENTIONS_COMPARE: '/interventions/compare',
   RECOMMENDATIONS: (id) => `/recommendations/${toApiFacilityId(id)}`,
   RECOMMENDATIONS_BY_LEAK: (leakId) => `/recommendations/leak/${leakId}`,
   INTERVENTIONS_PRIORITY: (id) => `/interventions/priority/${toApiFacilityId(id)}`,
@@ -51,6 +62,9 @@ export const ENDPOINTS = {
   BENCHMARK: (id) => `/benchmark/${toApiFacilityId(id)}`,
   PEER_CLUSTER: (id) => `/benchmark/peer-cluster/${toApiFacilityId(id)}`,
   CIRCULARITY: (id) => `/circularity/${toApiFacilityId(id)}`,
+  SYMBIOSIS: (id) => `/symbiosis/${toApiFacilityId(id)}`,
+  CCTS: (id, price) => price ? `/ccts/${toApiFacilityId(id)}?carbon_price_inr=${encodeURIComponent(price)}` : `/ccts/${toApiFacilityId(id)}`,
+  CCTS_MONETIZE: '/ccts/monetize',
 
   // AI Audit Summary & Report Generation
   AUDIT_SUMMARY: '/audit/summary',

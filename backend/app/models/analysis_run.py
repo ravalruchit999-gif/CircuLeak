@@ -20,6 +20,8 @@ class AnalysisRun(Base):
     parameters = Column(JSON, default=dict)             # Hyperparameters, e.g. contamination, k_clusters
     feature_set = Column(JSON, default=list)            # Feature columns used
     input_row_count = Column(Integer, default=0)
+    dataset_hash_sha256 = Column(String(64), nullable=True)
+    code_version = Column(String(100), nullable=True)
     started_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc), nullable=False)
     completed_at = Column(DateTime, nullable=True)
     status = Column(String(50), default="running")      # "running", "completed", "failed"

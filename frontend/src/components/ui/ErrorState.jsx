@@ -27,7 +27,7 @@ export function ErrorState({
                 Retry API Request
               </Button>
             )}
-            <Link to="/upload">
+            <Link to="/data-upload">
               <Button
                 variant="outline"
                 size="sm"

@@ -73,28 +73,68 @@ class RecommendationService:
         if summary.get("total_emissions", 0) == 0 or (not hotspots and not anomalies):
             return []
 
-        # Build query context from top hotspots and anomalies
-        top_eqs = [h["equipment"] for h in hotspots[:4]]
-        top_procs = [h["process"] for h in hotspots[:4]]
-        anomaly_eqs = [a["equipment"] for a in anomalies[:3]]
+        # Collect all active equipment and processes across hotspots and anomalies
+        all_eqs = list(dict.fromkeys([h["equipment"] for h in hotspots] + [a["equipment"] for a in anomalies]))
+        all_procs = list(dict.fromkeys([h["process"] for h in hotspots] + [a.get("process", "") for a in anomalies if a.get("process")]))
+        facility_sector = summary.get("sector", "General Manufacturing")
 
-        query_text = f"Sector {summary['sector']} industrial facility with equipment: {' '.join(top_eqs + anomaly_eqs)} and processes: {' '.join(top_procs)}"
+        query_text = f"Sector {facility_sector} industrial facility with equipment: {' '.join(all_eqs)} and processes: {' '.join(all_procs)}"
 
         matches = RecommendationService._semantic_similarity_match(query_text, DEFAULT_RECOMMENDATIONS)
 
-        # Prioritize recommendations that directly match active equipment
-        active_eq_names = [e.lower() for e in top_eqs + anomaly_eqs]
+        # Build token set for fast keyword and subphrase equipment matching
+        active_eq_lower = [e.lower() for e in all_eqs]
+        active_tokens = set()
+        for eq in active_eq_lower:
+            for token in re.findall(r'\b[a-zA-Z]{3,}\b', eq):
+                active_tokens.add(token)
+
+        # Common industrial equipment synonyms mapping
+        EQUIPMENT_SYNONYMS = {
+            "fan": ["fan", "blower", "draft", "ventilation", "exhaust", "baghouse"],
+            "motor": ["motor", "mill", "drive", "crusher", "conveyor", "roller"],
+            "pump": ["pump", "circulation", "feedwater", "hydraulic"],
+            "compressor": ["compressor", "pneumatic", "air", "dense-phase"],
+            "boiler": ["boiler", "steam", "calciner", "preheater"],
+            "furnace": ["furnace", "kiln", "heater", "oven", "curing", "pyroprocessing", "cooler"],
+            "chiller": ["chiller", "cooling", "hvac", "refrigeration"],
+        }
+
         for m in matches:
             m_eq = str(m.get("target_equipment", "")).lower()
-            if any(m_eq in act or act in m_eq for act in active_eq_names):
-                curr_score = float(m.get("match_score", 0.0) or 0.0)
-                m["match_score"] = min(1.0, round(curr_score + 0.35, 3))
+            m_supp = [str(s).lower() for s in (m.get("supported_equipment", []) or [])]
+            m_sectors = [str(s).lower() for s in (m.get("supported_sectors", []) or [])]
+
+            score = float(m.get("match_score", 0.0) or 0.0)
+
+            # Direct string containment
+            has_eq_match = any(m_eq in act or act in m_eq for act in active_eq_lower)
+            if not has_eq_match:
+                has_eq_match = any(any(s in act or act in s for act in active_eq_lower) for s in m_supp)
+
+            # Synonym and token match
+            if not has_eq_match:
+                for base_type, syns in EQUIPMENT_SYNONYMS.items():
+                    if base_type == m_eq or any(s == base_type for s in m_supp):
+                        if any(syn in active_tokens for syn in syns):
+                            has_eq_match = True
+                            break
+
+            if has_eq_match:
+                score = min(1.0, round(score + 0.35, 3))
                 m["match_reason"] = f"Direct equipment match for {m.get('target_equipment', '')} flagged as top carbon hotspot/leak."
 
+            # Sector compatibility check
+            if any(s in facility_sector.lower() or facility_sector.lower() in s for s in m_sectors) or "general manufacturing" in m_sectors:
+                score = min(1.0, round(score + 0.10, 3))
+
+            m["match_score"] = score
+
         matches.sort(key=lambda x: float(x.get("match_score", 0.0) or 0.0), reverse=True)
-        # Enforce statistical relevance threshold: do not return arbitrary candidates
-        MIN_RECOMMENDATION_SIMILARITY = 0.15
-        relevant_matches = [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= MIN_RECOMMENDATION_SIMILARITY]
+        # Filter with sensible threshold; fall back to top candidates if facility has valid telemetry
+        relevant_matches = [m for m in matches if float(m.get("match_score", 0.0) or 0.0) >= 0.05]
+        if not relevant_matches and matches:
+            relevant_matches = matches[:5]
         return relevant_matches
 
     @staticmethod

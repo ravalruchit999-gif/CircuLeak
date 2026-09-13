@@ -98,6 +98,21 @@ export function useDashboard() {
 
       const topRec = recList[0] || null;
 
+      const rawAlerts = anomaliesData?.anomalies || anomaliesData?.items || [];
+      const criticalAlerts = rawAlerts.map((a, i) => ({
+        id: a.leak_id || a.id || (i + 1),
+        equipment: a.equipment || 'Monitored Asset',
+        type: a.process || a.reason || 'Operational Carbon Leak',
+        risk_score: Math.round(a.risk_score || 75),
+        period: a.abnormal_period || 'Off-Peak Shift',
+        deviation_percent: Math.round(
+          a.deviation_percent ??
+          (a.observed_consumption && a.baseline_consumption
+            ? ((a.observed_consumption - a.baseline_consumption) / a.baseline_consumption) * 100
+            : 24)
+        ),
+      }));
+
       setData({
         facility_id: currentFacilityId,
         has_data: hasTelemetry,
@@ -107,6 +122,7 @@ export function useDashboard() {
           active_anomalies: activeAnomalies,
           high_severity: highSeverity,
           total_excess_kg: totalExcess,
+          critical_alerts: criticalAlerts,
         },
         emission_sources: rawMetrics?.by_source || [],
         top_recommended_action: topRec ? {

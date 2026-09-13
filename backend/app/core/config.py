@@ -21,8 +21,12 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: Union[str, List[str]] = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
+    # Environment
+    ENVIRONMENT: str = "development"
+
     # Security
-    JWT_SECRET: str = "circuleak-production-secure-auth-secret-key-991283741-2026"
+    JWT_SECRET: str = ""
+    SECRET_KEY: str = ""
 
     # Uploads
     UPLOAD_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
@@ -40,6 +44,29 @@ class Settings(BaseSettings):
     )
 
     def model_post_init(self, __context):
+        # Resolve SECRET_KEY / JWT_SECRET from environment or settings
+        resolved_secret = self.SECRET_KEY or self.JWT_SECRET or os.getenv("SECRET_KEY", os.getenv("JWT_SECRET", ""))
+        env_mode = (os.getenv("ENVIRONMENT") or self.ENVIRONMENT).lower()
+
+        insecure_keys = {
+            "circuleak_production_secret_key_change_in_production",
+            "circuleak-production-secure-auth-secret-key-991283741-2026",
+            "secret",
+            "change_me",
+            "password",
+            "test_secret"
+        }
+
+        if env_mode == "production":
+            if not resolved_secret or resolved_secret in insecure_keys or len(resolved_secret) < 32:
+                raise ValueError(
+                    "Production configuration error: A cryptographically secure, non-default SECRET_KEY "
+                    "(minimum 32 characters) must be configured in production environment."
+                )
+            self.JWT_SECRET = resolved_secret
+        else:
+            self.JWT_SECRET = resolved_secret if resolved_secret else "dev-insecure-test-jwt-key-not-for-production-use"
+
         if not self.DATABASE_URL:
             # Dynamically assemble PostgreSQL URL from individual parameters (with safe quoting for special characters)
             safe_user = quote_plus(self.DB_USER)

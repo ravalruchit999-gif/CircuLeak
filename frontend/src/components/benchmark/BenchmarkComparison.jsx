@@ -10,7 +10,7 @@ import {
   Cell,
 } from 'recharts';
 import { SectionCard } from '../ui/SectionCard';
-import { customTooltipStyle } from '../../utils/chartHelpers';
+import { customTooltipStyle, customItemStyle, customLabelStyle } from '../../utils/chartHelpers';
 
 export function BenchmarkComparison({ facilityIntensity = 0, benchmarkAverage = 0, bestInClass = 0, unit = 'kg/t' }) {
   const fInt = Number(facilityIntensity || 0);
@@ -36,7 +36,10 @@ export function BenchmarkComparison({ facilityIntensity = 0, benchmarkAverage = 
             <XAxis type="number" unit={` ${unit}`} domain={[0, Math.ceil(maxDomain)]} tick={{ fill: '#64748b', fontSize: 11 }} />
             <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} width={110} />
             <Tooltip
+              cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
               contentStyle={customTooltipStyle}
+              itemStyle={customItemStyle}
+              labelStyle={customLabelStyle}
               formatter={(val) => [`${val} ${unit}`, 'Intensity']}
             />
             {bAvg > 0 && (

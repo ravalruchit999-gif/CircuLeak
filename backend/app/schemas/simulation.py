@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
 class WhatIfRequest(BaseModel):
     facility_id: int = Field(..., json_schema_extra={"example": 1})
-    intervention_ids: List[str] = Field(..., min_length=1, json_schema_extra={"example": ["whr_boiler_flue", "vfd_compressor_retrofit"]})
+    intervention_ids: List[str] = Field(default_factory=list, json_schema_extra={"example": ["whr_boiler_flue", "vfd_compressor_retrofit"]})
 
 
 class InterventionImpactDetail(BaseModel):
@@ -25,6 +25,10 @@ class WhatIfResponse(BaseModel):
     investment: float  # INR
     annual_savings: float  # INR
     payback_years: float  # years
+    accelerated_payback_years: Optional[float] = None
+    tradable_ccc_earned: Optional[float] = 0.0
+    carbon_revenue_inr: Optional[float] = 0.0
+    ccts_monetization: Optional[Dict[str, Any]] = None
     five_year_savings: float  # INR
     selected_interventions: List[InterventionImpactDetail]
 

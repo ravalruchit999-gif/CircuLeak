@@ -2,6 +2,16 @@ import { apiRequest } from './apiClient';
 import { ENDPOINTS, toApiFacilityId } from '../constants/api';
 
 /**
+ * Retrieve available industry sector telemetry templates
+ * @returns {Promise<any>}
+ */
+export async function getAvailableTemplates() {
+  return apiRequest(ENDPOINTS.UPLOAD_TEMPLATES, {
+    method: 'GET',
+  });
+}
+
+/**
  * Inspect uploaded CSV or XLSX file headers and suggest column mappings
  * @param {File} file
  * @returns {Promise<any>}
@@ -13,6 +23,7 @@ export async function inspectIndustrialDataset(file) {
   return apiRequest(ENDPOINTS.UPLOAD_INSPECT, {
     method: 'POST',
     body: formData,
+    timeout: 60000,
   });
 }
 
@@ -36,6 +47,7 @@ export async function processIndustrialDataset(file, facilityId, customMapping =
   const res = await apiRequest(ENDPOINTS.UPLOAD_PROCESS, {
     method: 'POST',
     body: formData,
+    timeout: 120000, // 2 minutes dedicated for multi-week telemetry ingestion & ML pipeline
   });
 
   if (res.data) {
@@ -60,8 +72,20 @@ export async function processIndustrialDataset(file, facilityId, customMapping =
 }
 
 /**
+ * Retrieve latest active uploaded dataset for facility
+ */
+export async function getLatestUpload(facilityId) {
+  if (!facilityId) return null;
+  const targetId = toApiFacilityId(facilityId);
+  return apiRequest(`/upload/latest/${targetId}`, {
+    method: 'GET',
+  });
+}
+
+/**
  * Legacy wrapper for simple upload
  */
 export async function uploadProcessCsv(file, facilityId) {
   return processIndustrialDataset(file, facilityId, null);
 }
+

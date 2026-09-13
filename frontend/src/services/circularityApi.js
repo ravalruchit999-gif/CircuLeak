@@ -76,10 +76,11 @@ export async function getCircularity(facilityId) {
       projected_score: projectedScore,
       score_delta: delta,
       tier: raw.rating || raw.grade || (overallScore >= 80 ? 'Advanced Circular' : overallScore >= 60 ? 'Progressive Circular' : 'Linear Operations'),
-      pillars,
+      pillars: (raw.pillars && raw.pillars.length > 0) ? raw.pillars : pillars,
       dimension_benchmarks: raw.dimension_benchmarks || {},
       key_insights: raw.key_insights || [],
       missing_inputs: raw.missing_inputs || [],
+      symbiosis_summary: raw.symbiosis_summary || null,
     };
   }
 
